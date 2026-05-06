@@ -4,5 +4,5 @@ pandas
 numpy<2.0.0
 plotly
 scikit-learn
-tensorflow
+tensorflow-cpu
 vaderSentiment

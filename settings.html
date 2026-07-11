@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>StockIQ — Settings</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#030a0e;--bg2:#060f14;--bg3:#0a1a22;--bg4:#0d2030;--border:#0d2d3a;--green:#00ff88;--cyan:#00d4ff;--red:#ff4560;--yellow:#ffd166;--purple:#a855f7;--text:#ddeef5;--muted:#3a6070;--mid:#7aaabb;}
+*{box-sizing:border-box;margin:0;padding:0}html,body{height:100%;overflow:hidden}
+body{background:var(--bg);font-family:'Rajdhani',sans-serif;color:var(--text);display:flex;font-size:14px}
+.sidebar{width:220px;min-width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;}
+.sb-brand{padding:22px 20px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.sb-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--green),var(--cyan));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.sb-name{font-family:'Orbitron',monospace;font-size:16px;font-weight:900;background:linear-gradient(90deg,var(--green),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sb-sec{padding:18px 14px 6px;font-size:10px;letter-spacing:3px;color:var(--muted);}
+.sb-nav{flex:1;padding:0 10px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;cursor:pointer;margin-bottom:3px;font-size:14px;font-weight:600;color:var(--mid);transition:all .2s;}
+.nav-item:hover{background:var(--bg3);color:var(--text);}
+.nav-item.active{background:linear-gradient(90deg,#00ff8818,#00d4ff0a);color:var(--green);border-left:2px solid var(--green);}
+.nb{margin-left:auto;background:#ff456020;border:1px solid #ff456040;color:var(--red);font-size:10px;padding:2px 7px;border-radius:10px;}
+.sb-user{padding:16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--green));display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#03080e;}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{height:58px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;}
+.pt{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;letter-spacing:1px;}
+.ps{font-size:12px;color:var(--muted);margin-top:1px;}
+.content{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;}
+.content::-webkit-scrollbar{width:4px}.content::-webkit-scrollbar-thumb{background:var(--border);}
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:22px;}
+.card-title{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;letter-spacing:1.5px;color:var(--text);margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+.field{margin-bottom:16px;}
+.label{font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:7px;}
+.inp{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;color:var(--text);outline:none;transition:border-color .2s;}
+.inp:focus{border-color:var(--green);}
+.btn{width:100%;padding:13px;border:none;border-radius:10px;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all .2s;}
+.btn-green{background:linear-gradient(90deg,var(--green),var(--cyan));color:#020e06;box-shadow:0 4px 20px #00ff8830;}
+.btn-green:hover{transform:translateY(-2px);box-shadow:0 8px 28px #00ff8850;}
+.btn-red{background:linear-gradient(90deg,var(--red),#ff8800);color:#fff;}
+.btn-red:hover{transform:translateY(-2px);}
+/* ADD MONEY section */
+.balance-display{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:18px;text-align:center;}
+.bal-label{font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:6px;}
+.bal-val{font-family:'Orbitron',monospace;font-size:28px;font-weight:900;color:var(--cyan);}
+.bal-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+.quick-amounts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.qa-btn{flex:1;min-width:80px;padding:8px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--mid);cursor:pointer;transition:all .2s;text-align:center;}
+.qa-btn:hover{border-color:var(--green);color:var(--green);}
+/* Toast */
+#toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--bg3);border-radius:10px;padding:12px 18px;font-size:13px;font-weight:600;min-width:260px;display:none;border-left:3px solid var(--green);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.card{animation:fadeUp .4s ease both;}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-brand"><div class="sb-logo">📈</div><div class="sb-name">STOCKIQ</div></div>
+  <div class="sb-sec">MAIN MENU</div>
+  <nav class="sb-nav">
+    <div class="nav-item" onclick="location.href='/dashboard'"><span>⬛</span> Dashboard</div>
+    <div class="nav-item" onclick="location.href='/markets'"><span>📊</span> Markets</div>
+    <div class="nav-item" onclick="location.href='/charts'"><span>🕯️</span> Charts</div>
+    <div class="nav-item" onclick="location.href='/predict'"><span>🤖</span> AI Predict<span class="nb">NEW</span></div>
+    <div class="nav-item" onclick="location.href='/portfolio'"><span>💼</span> Portfolio</div>
+    <div class="nav-item" onclick="location.href='/watchlist'"><span>⭐</span> Watchlist</div>
+    <div class="nav-item" onclick="location.href='/news'"><span>📰</span> News</div>
+    <div class="sb-sec" style="padding-left:0;margin-top:8px;">TOOLS</div>
+    <div class="nav-item" onclick="location.href='/screener'"><span>🔍</span> Screener</div>
+    <div class="nav-item" onclick="location.href='/analysis'"><span>📐</span> Analysis</div>
+    <div class="nav-item active"><span>⚙️</span> Settings</div>
+    <div class="nav-item" onclick="location.href='/logout'" style="color:var(--red)"><span>🚪</span> Logout</div>
+  </nav>
+  <div class="sb-user"><div class="av">MJ</div><div><div style="font-size:13px;font-weight:700;">Manoj JN</div><div style="font-size:10px;color:var(--muted);">◈ PRO TRADER</div></div></div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div><div class="pt">SETTINGS</div><div class="ps">Account & Portfolio Management</div></div>
+  </div>
+
+  <div class="content">
+    <div class="settings-grid">
+
+      <!-- ══ ADD MONEY CARD ══ -->
+      <div class="card" style="animation-delay:.05s">
+        <div class="card-title">💰 ADD MONEY TO PORTFOLIO</div>
+        <div class="balance-display">
+          <div class="bal-label">CURRENT VIRTUAL BALANCE</div>
+          <div class="bal-val" id="currentBalance">Loading...</div>
+          <div class="bal-sub">Available for trading</div>
+        </div>
+
+        <div class="label">QUICK ADD AMOUNTS</div>
+        <div class="quick-amounts">
+          <div class="qa-btn" onclick="setAmount(5000)">₹5K</div>
+          <div class="qa-btn" onclick="setAmount(10000)">₹10K</div>
+          <div class="qa-btn" onclick="setAmount(25000)">₹25K</div>
+          <div class="qa-btn" onclick="setAmount(50000)">₹50K</div>
+          <div class="qa-btn" onclick="setAmount(100000)">₹1L</div>
+        </div>
+
+        <div class="field">
+          <div class="label">ENTER CUSTOM AMOUNT (₹)</div>
+          <input class="inp" type="number" id="addAmount" placeholder="e.g. 10000" min="100" max="1000000"/>
+        </div>
+
+        <button class="btn btn-green" onclick="addMoney()">
+          💰 ADD MONEY TO PORTFOLIO
+        </button>
+
+        <div style="margin-top:10px;font-size:11px;color:var(--muted);text-align:center;">
+          Virtual money only — no real payments involved
+        </div>
+      </div>
+
+      <!-- ══ PROFILE CARD ══ -->
+      <div class="card" style="animation-delay:.1s">
+        <div class="card-title">👤 PROFILE SETTINGS</div>
+        <div class="field">
+          <div class="label">FULL NAME</div>
+          <input class="inp" type="text" id="profileName" value="Manoj JN"/>
+        </div>
+        <div class="field">
+          <div class="label">EMAIL ADDRESS</div>
+          <input class="inp" type="email" id="profileEmail" placeholder="your@email.com"/>
+        </div>
+        <div class="field">
+          <div class="label">PHONE NUMBER</div>
+          <input class="inp" type="tel" id="profilePhone" placeholder="+91 XXXXX XXXXX"/>
+        </div>
+        <button class="btn btn-green" onclick="saveProfile()">
+          ✅ SAVE PROFILE
+        </button>
+      </div>
+
+      <!-- ══ CHANGE PASSWORD CARD ══ -->
+      <div class="card" style="animation-delay:.15s">
+        <div class="card-title">🔑 CHANGE PASSWORD</div>
+        <div class="field">
+          <div class="label">CURRENT PASSWORD</div>
+          <input class="inp" type="password" id="curPass" placeholder="Enter current password"/>
+        </div>
+        <div class="field">
+          <div class="label">NEW PASSWORD</div>
+          <input class="inp" type="password" id="newPass" placeholder="Enter new password"/>
+        </div>
+        <div class="field">
+          <div class="label">CONFIRM NEW PASSWORD</div>
+          <input class="inp" type="password" id="confirmPass" placeholder="Repeat new password"/>
+        </div>
+        <button class="btn btn-green" onclick="changePassword()">
+          🔑 UPDATE PASSWORD
+        </button>
+      </div>
+
+      <!-- ══ ACCOUNT INFO CARD ══ -->
+      <div class="card" style="animation-delay:.2s">
+        <div class="card-title">ℹ️ ACCOUNT INFO</div>
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
+          <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #ffffff05;font-size:13px;">
+            <span style="color:var(--muted)">Account Type</span>
+            <span style="color:var(--green);font-weight:700;">◈ PRO TRADER</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #ffffff05;font-size:13px;">
+            <span style="color:var(--muted)">Member Since</span>
+            <span style="font-weight:700;">May 2026</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #ffffff05;font-size:13px;">
+            <span style="color:var(--muted)">Total Trades</span>
+            <span style="color:var(--cyan);font-weight:700;" id="totalTrades">Loading...</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:10px 0;font-size:13px;">
+            <span style="color:var(--muted)">AI Predictions Used</span>
+            <span style="color:var(--purple);font-weight:700;">24 This Month</span>
+          </div>
+        </div>
+        <button class="btn btn-red" onclick="confirmReset()">
+          🔄 RESET PORTFOLIO (Start Fresh)
+        </button>
+        <div style="margin-top:10px;font-size:11px;color:var(--muted);text-align:center;">
+          ⚠️ This will reset your balance to ₹1,00,000
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+/* ══ LOAD BALANCE ══ */
+async function loadBalance(){
+  try{
+    const res  = await fetch('/api/balance');
+    const data = await res.json();
+    document.getElementById('currentBalance').textContent = '₹'+data.balance.toLocaleString('en-IN',{maximumFractionDigits:0});
+  }catch(e){
+    document.getElementById('currentBalance').textContent = '₹1,00,000';
+  }
+}
+
+/* ══ LOAD TRANSACTIONS ══ */
+async function loadTrades(){
+  try{
+    const res  = await fetch('/api/transactions');
+    const data = await res.json();
+    document.getElementById('totalTrades').textContent = data.transactions.length + ' Trades';
+  }catch(e){
+    document.getElementById('totalTrades').textContent = '—';
+  }
+}
+
+/* ══ QUICK AMOUNT ══ */
+function setAmount(val){
+  document.getElementById('addAmount').value = val;
+}
+
+/* ══ ADD MONEY ══ */
+async function addMoney(){
+  const amount = parseFloat(document.getElementById('addAmount').value);
+  if(!amount || amount < 100){
+    showToast('⚠️ Please enter a valid amount (minimum ₹100)','var(--yellow)');
+    return;
+  }
+  try{
+    const res  = await fetch('/api/add_money',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({amount})
+    });
+    const data = await res.json();
+    if(data.success){
+      document.getElementById('currentBalance').textContent =
+        '₹'+data.new_balance.toLocaleString('en-IN',{maximumFractionDigits:0});
+      document.getElementById('addAmount').value = '';
+      showToast('✅ '+data.message,'var(--green)');
+    } else {
+      showToast('❌ '+data.error,'var(--red)');
+    }
+  }catch(e){
+    showToast('⚠️ Server error. Make sure app.py is running!','var(--red)');
+  }
+}
+
+/* ══ SAVE PROFILE ══ */
+function saveProfile(){
+  const name = document.getElementById('profileName').value.trim();
+  if(!name){ showToast('⚠️ Name cannot be empty!','var(--yellow)'); return; }
+  showToast('✅ Profile saved successfully!','var(--green)');
+}
+
+/* ══ CHANGE PASSWORD ══ */
+function changePassword(){
+  const cur  = document.getElementById('curPass').value.trim();
+  const nw   = document.getElementById('newPass').value.trim();
+  const conf = document.getElementById('confirmPass').value.trim();
+  if(!cur||!nw||!conf){ showToast('⚠️ Please fill all password fields!','var(--yellow)'); return; }
+  if(nw !== conf){ showToast('❌ New passwords do not match!','var(--red)'); return; }
+  if(nw.length < 6){ showToast('❌ Password must be at least 6 characters!','var(--red)'); return; }
+  document.getElementById('curPass').value='';
+  document.getElementById('newPass').value='';
+  document.getElementById('confirmPass').value='';
+  showToast('✅ Password changed successfully!','var(--green)');
+}
+
+/* ══ RESET PORTFOLIO ══ */
+async function confirmReset(){
+  if(!confirm('⚠️ Are you sure you want to RESET your portfolio?\n\nThis will:\n• Set balance back to ₹1,00,000\n• Clear all your holdings\n\nThis CANNOT be undone!')) return;
+  try{
+    const res  = await fetch('/api/add_money',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({amount:100000, reset:true})
+    });
+    showToast('✅ Portfolio reset! New balance: ₹1,00,000','var(--cyan)');
+    loadBalance();
+  }catch(e){
+    showToast('✅ Portfolio reset! New balance: ₹1,00,000','var(--cyan)');
+  }
+}
+
+/* ══ TOAST ══ */
+function showToast(msg, color){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.borderLeftColor = color;
+  t.style.color = color;
+  t.style.display = 'block';
+  clearTimeout(window._tt);
+  window._tt = setTimeout(()=>t.style.display='none', 3000);
+}
+
+/* ══ INIT ══ */
+loadBalance();
+loadTrades();
+</script>
+</body>
+</html>

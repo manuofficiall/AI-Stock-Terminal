@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StockIQ — Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg-deep:     #030a0e;
+      --bg-panel:    #060f14;
+      --bg-card:     #0a1a22;
+      --border:      #0d2d3a;
+      --green:       #00ff88;
+      --green-dim:   #00c96a;
+      --cyan:        #00d4ff;
+      --red:         #ff4560;
+      --text:        #e0f0f5;
+      --text-muted:  #4a7a8a;
+      --text-mid:    #8ab0bb;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg-deep);
+      font-family: 'Rajdhani', sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* ── CANVAS BACKGROUND ── */
+    canvas#bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      opacity: .45;
+    }
+
+    /* ── LEFT PANEL ── */
+    .left-panel {
+      position: relative;
+      z-index: 1;
+      flex: 1.1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 40px 44px;
+      background: linear-gradient(160deg, #041218 0%, #020c10 100%);
+      border-right: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .left-panel::before {
+      content: '';
+      position: absolute;
+      top: -120px; left: -120px;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, #00ff8812 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: fadeSlideDown .6s ease both;
+    }
+
+    .brand-icon {
+      width: 42px; height: 42px;
+      background: linear-gradient(135deg, var(--green), var(--cyan));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 0 20px #00ff8840;
+    }
+
+    .brand-name {
+      font-family: 'Orbitron', monospace;
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      background: linear-gradient(90deg, var(--green), var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* ticker bar */
+    .ticker-bar {
+      background: #ffffff06;
+      border: 1px solid #ffffff0a;
+      border-radius: 8px;
+      padding: 10px 16px;
+      overflow: hidden;
+      animation: fadeSlideDown .7s .1s ease both;
+    }
+    .ticker-label {
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .ticker-scroll { display: flex; gap: 24px; animation: tickerMove 22s linear infinite; }
+    .ticker-item { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+    .ticker-sym { font-family: 'Orbitron', monospace; font-size: 11px; color: var(--text-mid); }
+    .ticker-price { font-size: 13px; font-weight: 700; color: var(--text); }
+    .up   { color: var(--green); font-size: 11px; font-weight: 700; }
+    .down { color: var(--red);   font-size: 11px; font-weight: 700; }
+    @keyframes tickerMove { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+
+    /* mini chart */
+    .chart-block {
+      animation: fadeSlideUp .7s .15s ease both;
+    }
+    .chart-header {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      margin-bottom: 14px;
+    }
+    .chart-company { font-family: 'Orbitron', monospace; font-size: 13px; color: var(--cyan); }
+    .chart-price { font-size: 28px; font-weight: 700; color: var(--text); line-height: 1; }
+    .chart-change { font-size: 13px; color: var(--green); margin-top: 2px; font-weight: 700; }
+    .chart-badge {
+      background: #00ff8815; border: 1px solid #00ff8830;
+      border-radius: 6px; padding: 4px 10px;
+      font-size: 11px; color: var(--green); letter-spacing: 1px;
+    }
+    canvas#miniChart { width: 100%; height: 100px; display: block; }
+    .chart-axes {
+      display: flex; justify-content: space-between;
+      margin-top: 6px;
+      font-size: 10px; color: var(--text-muted);
+    }
+
+    /* stats row */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+      animation: fadeSlideUp .7s .2s ease both;
+    }
+    .stat-card {
+      background: #ffffff05;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .stat-label { font-size: 10px; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 4px; }
+    .stat-val   { font-size: 17px; font-weight: 700; color: var(--text); }
+    .stat-sub   { font-size: 11px; margin-top: 2px; }
+
+    /* tag line */
+    .tagline {
+      font-size: 13px; color: var(--text-muted); line-height: 1.8;
+      animation: fadeSlideUp .7s .25s ease both;
+    }
+    .tagline span { color: var(--green); font-weight: 700; }
+
+    /* ── RIGHT PANEL ── */
+    .right-panel {
+      position: relative;
+      z-index: 1;
+      width: 420px;
+      min-width: 360px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 50px 44px;
+      background: var(--bg-panel);
+    }
+
+    .form-head {
+      margin-bottom: 32px;
+      animation: fadeSlideDown .6s ease both;
+    }
+    .form-head h2 {
+      font-family: 'Orbitron', monospace;
+      font-size: 22px; font-weight: 900;
+      color: var(--text);
+      margin-bottom: 6px;
+      letter-spacing: 1px;
+    }
+    .form-head p { font-size: 14px; color: var(--text-muted); }
+
+    /* tabs */
+    .tabs {
+      display: flex; gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 10px; overflow: hidden;
+      margin-bottom: 28px;
+      animation: fadeSlideDown .6s .05s ease both;
+    }
+    .tab {
+      flex: 1; padding: 11px;
+      background: transparent; border: none; cursor: pointer;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 14px; font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      transition: all .25s;
+    }
+    .tab.active {
+      background: linear-gradient(135deg, #00ff8815, #00d4ff0a);
+      color: var(--green);
+      border-bottom: 2px solid var(--green);
+    }
+
+    /* form fields */
+    .field { margin-bottom: 18px; animation: fadeSlideUp .5s ease both; }
+    .field:nth-child(1) { animation-delay: .1s; }
+    .field:nth-child(2) { animation-delay: .15s; }
+    .field:nth-child(3) { animation-delay: .2s; }
+    .field:nth-child(4) { animation-delay: .25s; }
+
+    .field label {
+      display: block;
+      font-size: 11px; letter-spacing: 2px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .input-wrap {
+      position: relative;
+      display: flex; align-items: center;
+    }
+    .input-icon {
+      position: absolute; left: 14px;
+      font-size: 16px; pointer-events: none;
+      opacity: .5;
+    }
+    .input-wrap input {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 13px 14px 13px 42px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 15px; font-weight: 500;
+      color: var(--text);
+      outline: none;
+      transition: border-color .25s, box-shadow .25s;
+    }
+    .input-wrap input:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px #00ff8815;
+    }
+    .input-wrap input::placeholder { color: var(--text-muted); }
+
+    .eye-btn {
+      position: absolute; right: 14px;
+      background: none; border: none; cursor: pointer;
+      font-size: 17px; opacity: .45; transition: opacity .2s;
+    }
+    .eye-btn:hover { opacity: .9; }
+
+    /* extras */
+    .extras {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 24px;
+      animation: fadeSlideUp .5s .28s ease both;
+    }
+    .remember { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .remember input[type=checkbox] { accent-color: var(--green); width: 15px; height: 15px; }
+    .remember span { font-size: 13px; color: var(--text-muted); }
+    .forgot { font-size: 13px; color: var(--cyan); text-decoration: none; transition: color .2s; }
+    .forgot:hover { color: var(--green); }
+
+    /* login button */
+    .btn-login {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(90deg, var(--green), #00c9ff);
+      border: none; border-radius: 12px;
+      font-family: 'Orbitron', monospace;
+      font-size: 14px; font-weight: 700;
+      letter-spacing: 2px;
+      color: #020f08;
+      cursor: pointer;
+      position: relative; overflow: hidden;
+      transition: transform .2s, box-shadow .2s;
+      animation: fadeSlideUp .5s .32s ease both;
+      box-shadow: 0 4px 24px #00ff8835;
+    }
+    .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px #00ff8855;
+    }
+    .btn-login:active { transform: translateY(0); }
+    .btn-login .shine {
+      position: absolute; top: 0; left: -100%;
+      width: 60%; height: 100%;
+      background: linear-gradient(90deg, transparent, #ffffff30, transparent);
+      animation: shine 3s 1s infinite;
+    }
+    @keyframes shine { 0%{left:-100%} 40%,100%{left:160%} }
+
+    .divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 22px 0;
+      animation: fadeSlideUp .5s .35s ease both;
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1; height: 1px;
+      background: var(--border);
+    }
+    .divider span { font-size: 11px; color: var(--text-muted); letter-spacing: 1px; }
+
+    /* social login */
+    .social-row {
+      display: flex; gap: 10px;
+      animation: fadeSlideUp .5s .38s ease both;
+    }
+    .btn-social {
+      flex: 1; padding: 11px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px; cursor: pointer;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 13px; font-weight: 600;
+      color: var(--text-mid);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: border-color .2s, color .2s;
+    }
+    .btn-social:hover { border-color: #ffffff30; color: var(--text); }
+
+    /* register link */
+    .register-link {
+      margin-top: 24px; text-align: center;
+      font-size: 13px; color: var(--text-muted);
+      animation: fadeSlideUp .5s .4s ease both;
+    }
+    .register-link a {
+      color: var(--green); text-decoration: none;
+      font-weight: 700; transition: color .2s;
+    }
+    .register-link a:hover { color: var(--cyan); }
+
+    /* Register form (hidden by default) */
+    #registerForm { display: none; }
+
+    /* Animations */
+    @keyframes fadeSlideDown {
+      from { opacity:0; transform:translateY(-18px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    @keyframes fadeSlideUp {
+      from { opacity:0; transform:translateY(18px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    /* Success overlay */
+    #successOverlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 999;
+      background: #030a0eee;
+      align-items: center; justify-content: center;
+      flex-direction: column; gap: 18px;
+      font-family: 'Orbitron', monospace;
+      text-align: center;
+    }
+    #successOverlay .tick {
+      font-size: 60px;
+      animation: popIn .5s ease;
+    }
+    #successOverlay h3 {
+      font-size: 20px; color: var(--green);
+      letter-spacing: 2px;
+    }
+    #successOverlay p {
+      font-size: 13px; color: var(--text-muted);
+      font-family: 'Rajdhani', sans-serif;
+    }
+    @keyframes popIn {
+      0%  { transform: scale(0); }
+      70% { transform: scale(1.2); }
+      100%{ transform: scale(1); }
+    }
+
+    /* responsive */
+    @media(max-width:768px){
+      .left-panel { display: none; }
+      .right-panel { width: 100%; padding: 40px 28px; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+
+<div class="left-panel">
+
+  <div class="brand">
+    <div class="brand-icon">📈</div>
+    <div class="brand-name">STOCKIQ</div>
+  </div>
+
+  <div class="ticker-bar">
+    <div class="ticker-label">◈ LIVE MARKET FEED</div>
+    <div class="ticker-scroll" id="tickerTrack">
+      <div class="ticker-item"><span class="ticker-sym">RELIANCE</span><span class="ticker-price">₹2,945</span><span class="up">▲ 1.2%</span></div>
+      <div class="ticker-item"><span class="ticker-sym">TCS</span><span class="ticker-price">₹3,812</span><span class="up">▲ 0.8%</span></div>
+      <div class="ticker-item"><span class="ticker-sym">INFOSYS</span><span class="ticker-price">₹1,562</span><span class="down">▼ 0.4%</span></div>
+      <div class="ticker-item"><span class="ticker-sym">HDFC</span><span class="ticker-price">₹1,734</span><span class="up">▲ 2.1%</span></div>
+      <div class="ticker-item"><span class="ticker-sym">WIPRO</span><span class="ticker-price">₹478</span><span class="down">▼ 0.9%</span></div>
+      <div class="ticker-item"><span class="ticker-sym">AAPL</span><span class="ticker-price">$189.5</span><span class="up">▲ 0.6%</span></div>
+      <div class="ticker-item"><span class="ticker-sym">TSLA</span><span class="ticker-price">$244.8</span><span class="up">▲ 3.2%</span></div>
+      <div class="ticker-item"><span class="ticker-sym">RELIANCE</span><span class="ticker-price">₹2,945</span><span class="up">▲ 1.2%</span></div>
+      <div class="ticker-item"><span class="ticker-sym">TCS</span><span class="ticker-price">₹3,812</span><span class="up">▲ 0.8%</span></div>
+      <div class="ticker-item"><span class="ticker-sym">INFOSYS</span><span class="ticker-price">₹1,562</span><span class="down">▼ 0.4%</span></div>
+      <div class="ticker-item"><span class="ticker-sym">HDFC</span><span class="ticker-price">₹1,734</span><span class="up">▲ 2.1%</span></div>
+      <div class="ticker-item"><span class="ticker-sym">WIPRO</span><span class="ticker-price">₹478</span><span class="down">▼ 0.9%</span></div>
+      <div class="ticker-item"><span class="ticker-sym">AAPL</span><span class="ticker-price">$189.5</span><span class="up">▲ 0.6%</span></div>
+      <div class="ticker-item"><span class="ticker-sym">TSLA</span><span class="ticker-price">$244.8</span><span class="up">▲ 3.2%</span></div>
+    </div>
+  </div>
+
+  <div class="chart-block">
+    <div class="chart-header">
+      <div>
+        <div class="chart-company">RELIANCE.NS</div>
+        <div class="chart-price">₹2,945<span style="font-size:14px;color:#8ab0bb">.30</span></div>
+        <div class="chart-change">▲ +34.50 (1.19%)</div>
+      </div>
+      <div class="chart-badge">NSE LIVE</div>
+    </div>
+    <canvas id="miniChart"></canvas>
+    <div class="chart-axes">
+      <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">NIFTY 50</div>
+      <div class="stat-val">22,147</div>
+      <div class="stat-sub up">▲ 0.74%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">SENSEX</div>
+      <div class="stat-val">73,088</div>
+      <div class="stat-sub up">▲ 0.61%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">INDIA VIX</div>
+      <div class="stat-val">13.42</div>
+      <div class="stat-sub down">▼ 2.3%</div>
+    </div>
+  </div>
+
+  <div class="tagline">
+    Trade smarter with <span>AI-powered predictions</span>.<br/>
+    Your market edge starts here.
+  </div>
+</div>
+
+<div class="right-panel">
+  <div class="form-head">
+    <h2>WELCOME BACK</h2>
+    <p>Sign in to your StockIQ account</p>
+  </div>
+
+  {% if error %}
+    <div style="background: rgba(255, 69, 96, 0.1); border: 1px solid var(--red); color: var(--red); padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; text-align: center; font-weight: 600;">
+      ⚠️ {{ error }}
+    </div>
+  {% endif %}
+  
+  {% if success %}
+    <div style="background: rgba(0, 255, 136, 0.1); border: 1px solid var(--green); color: var(--green); padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; text-align: center; font-weight: 600;">
+      ✅ {{ success }}
+    </div>
+  {% endif %}
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('login')">LOGIN</button>
+    <button class="tab" onclick="switchTab('register')">REGISTER</button>
+  </div>
+
+  <div id="loginForm">
+    <div class="field">
+      <label>EMAIL ADDRESS</label>
+      <div class="input-wrap">
+        <span class="input-icon">✉</span>
+        <input type="email" id="loginEmail" name="email" placeholder="you@email.com" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>PASSWORD</label>
+      <div class="input-wrap">
+        <span class="input-icon">🔒</span>
+        <input type="password" id="loginPass" name="password" placeholder="Enter your password" />
+        <button class="eye-btn" onclick="togglePwd('loginPass', this)">👁</button>
+      </div>
+    </div>
+
+    <div class="extras">
+      <label class="remember">
+        <input type="checkbox" checked />
+        <span>Remember me</span>
+      </label>
+      <a href="#" class="forgot" onclick="openForgotPassword()">Forgot Password?</a>
+    </div>
+
+    <button class="btn-login" onclick="handleLogin()">
+      <div class="shine"></div>
+      SIGN IN →
+    </button>
+
+    <div class="divider"><span>OR CONTINUE WITH</span></div>
+
+    <div class="social-row">
+      <button class="btn-social" onclick="googleLogin()">🇬 Google</button>
+      <button class="btn-social" onclick="mobileOTP()">📱 Mobile OTP</button>
+    </div>
+
+    <div class="register-link">
+      New to StockIQ? <a href="#" onclick="switchTab('register')">Create Account</a>
+    </div>
+  </div>
+
+  <div id="registerForm">
+    <div class="field">
+      <label>FULL NAME</label>
+      <div class="input-wrap">
+        <span class="input-icon">👤</span>
+        <input type="text" id="regName" name="name" placeholder="Your full name" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>EMAIL ADDRESS</label>
+      <div class="input-wrap">
+        <span class="input-icon">✉</span>
+        <input type="email" id="regEmail" name="email" placeholder="you@email.com" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>PHONE NUMBER</label>
+      <div class="input-wrap">
+        <span class="input-icon">📞</span>
+        <input type="tel" id="regPhone" placeholder="+91 XXXXX XXXXX" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>CREATE PASSWORD</label>
+      <div class="input-wrap">
+        <span class="input-icon">🔒</span>
+        <input type="password" id="regPass" name="password" placeholder="Min. 6 characters" />
+        <button class="eye-btn" onclick="togglePwd('regPass', this)">👁</button>
+      </div>
+    </div>
+
+    <button class="btn-login" onclick="handleRegister()">
+      <div class="shine"></div>
+      CREATE ACCOUNT →
+    </button>
+
+    <div class="register-link" style="margin-top:16px">
+      Already have an account? <a href="#" onclick="switchTab('login')">Sign In</a>
+    </div>
+  </div>
+</div>
+
+<div id="forgotModal" style="display:none;position:fixed;inset:0;z-index:999;
+  background:#000000bb;backdrop-filter:blur(4px);
+  align-items:center;justify-content:center;">
+  <div style="background:#060f14;border:1px solid #0d2d3a;border-radius:16px;
+    padding:28px;width:360px;position:relative;animation:popUp .25s ease both;">
+    <button onclick="closeForgot()" style="position:absolute;top:14px;right:16px;
+      background:none;border:none;color:#3a6070;font-size:20px;cursor:pointer;">✕</button>
+    <div style="font-family:'Orbitron',monospace;font-size:13px;font-weight:700;
+      color:#ddeef5;letter-spacing:1px;margin-bottom:6px;">🔑 FORGOT PASSWORD</div>
+    <div style="font-size:12px;color:#3a6070;margin-bottom:20px;">
+      Enter your registered email. We'll send a reset link.</div>
+
+    <div id="forgotStep1">
+      <div style="font-size:11px;letter-spacing:2px;color:#3a6070;margin-bottom:8px;">EMAIL ADDRESS</div>
+      <div style="position:relative;margin-bottom:16px;">
+        <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);">✉</span>
+        <input id="forgotEmail" type="email" placeholder="your@email.com"
+          style="width:100%;background:#0a1a22;border:1px solid #0d2d3a;border-radius:10px;
+          padding:12px 14px 12px 40px;font-family:'Rajdhani',sans-serif;font-size:14px;
+          color:#ddeef5;outline:none;"/>
+      </div>
+      <button onclick="sendResetOTP()"
+        style="width:100%;padding:13px;background:linear-gradient(90deg,#00ff88,#00c9ff);
+        border:none;border-radius:10px;font-family:'Orbitron',monospace;font-size:12px;
+        font-weight:700;color:#020e06;cursor:pointer;letter-spacing:1px;">
+        SEND OTP →
+      </button>
+    </div>
+
+    <div id="forgotStep2" style="display:none;">
+      <div style="text-align:center;margin-bottom:16px;">
+        <div style="font-size:28px;">📧</div>
+        <div style="font-size:13px;color:#00ff88;font-weight:700;margin-top:8px;">OTP Sent!</div>
+        <div style="font-size:11px;color:#3a6070;margin-top:4px;" id="forgotEmailShow"></div>
+      </div>
+      <div style="font-size:11px;letter-spacing:2px;color:#3a6070;margin-bottom:8px;">ENTER 6-DIGIT OTP</div>
+      <input id="forgotOTP" type="text" maxlength="6" placeholder="Enter OTP (use: 123456)"
+        style="width:100%;background:#0a1a22;border:1px solid #0d2d3a;border-radius:10px;
+        padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;
+        color:#00ff88;outline:none;text-align:center;letter-spacing:8px;margin-bottom:16px;"/>
+      <div style="font-size:11px;letter-spacing:2px;color:#3a6070;margin-bottom:8px;">NEW PASSWORD</div>
+      <input id="forgotNewPass" type="password" placeholder="Enter new password"
+        style="width:100%;background:#0a1a22;border:1px solid #0d2d3a;border-radius:10px;
+        padding:12px 14px;font-family:'Rajdhani',sans-serif;font-size:14px;
+        color:#ddeef5;outline:none;margin-bottom:16px;"/>
+      <button onclick="verifyOTP()"
+        style="width:100%;padding:13px;background:linear-gradient(90deg,#00ff88,#00c9ff);
+        border:none;border-radius:10px;font-family:'Orbitron',monospace;font-size:12px;
+        font-weight:700;color:#020e06;cursor:pointer;letter-spacing:1px;">
+        ✅ RESET PASSWORD
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="otpModal" style="display:none;position:fixed;inset:0;z-index:999;
+  background:#000000bb;backdrop-filter:blur(4px);
+  align-items:center;justify-content:center;">
+  <div style="background:#060f14;border:1px solid #0d2d3a;border-radius:16px;
+    padding:28px;width:360px;position:relative;animation:popUp .25s ease both;">
+    <button onclick="closeOTP()" style="position:absolute;top:14px;right:16px;
+      background:none;border:none;color:#3a6070;font-size:20px;cursor:pointer;">✕</button>
+    <div style="font-family:'Orbitron',monospace;font-size:13px;font-weight:700;
+      color:#ddeef5;letter-spacing:1px;margin-bottom:6px;">📱 MOBILE OTP LOGIN</div>
+    <div style="font-size:12px;color:#3a6070;margin-bottom:20px;">Login with your registered phone number</div>
+
+    <div id="otpStep1">
+      <div style="font-size:11px;letter-spacing:2px;color:#3a6070;margin-bottom:8px;">MOBILE NUMBER</div>
+      <div style="position:relative;margin-bottom:16px;">
+        <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);">📞</span>
+        <input id="otpPhone" type="tel" placeholder="+91 98765 43210"
+          style="width:100%;background:#0a1a22;border:1px solid #0d2d3a;border-radius:10px;
+          padding:12px 14px 12px 40px;font-family:'Rajdhani',sans-serif;font-size:14px;
+          color:#ddeef5;outline:none;"/>
+      </div>
+      <button onclick="sendMobileOTP()"
+        style="width:100%;padding:13px;background:linear-gradient(90deg,#00ff88,#00c9ff);
+        border:none;border-radius:10px;font-family:'Orbitron',monospace;font-size:12px;
+        font-weight:700;color:#020e06;cursor:pointer;letter-spacing:1px;">
+        SEND OTP →
+      </button>
+    </div>
+
+    <div id="otpStep2" style="display:none;">
+      <div style="text-align:center;margin-bottom:16px;">
+        <div style="font-size:28px;">📲</div>
+        <div style="font-size:13px;color:#00ff88;font-weight:700;margin-top:8px;">OTP Sent!</div>
+        <div style="font-size:11px;color:#3a6070;margin-top:4px;" id="otpPhoneShow"></div>
+        <div style="font-size:11px;color:#ffd166;margin-top:4px;">Demo OTP: <strong>654321</strong></div>
+      </div>
+      <div style="font-size:11px;letter-spacing:2px;color:#3a6070;margin-bottom:8px;">ENTER 6-DIGIT OTP</div>
+      <input id="otpCode" type="text" maxlength="6" placeholder="654321"
+        style="width:100%;background:#0a1a22;border:1px solid #0d2d3a;border-radius:10px;
+        padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;
+        color:#00ff88;outline:none;text-align:center;letter-spacing:8px;margin-bottom:16px;"/>
+      <button onclick="verifyMobileOTP()"
+        style="width:100%;padding:13px;background:linear-gradient(90deg,#00ff88,#00c9ff);
+        border:none;border-radius:10px;font-family:'Orbitron',monospace;font-size:12px;
+        font-weight:700;color:#020e06;cursor:pointer;letter-spacing:1px;">
+        ✅ VERIFY & LOGIN
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="successOverlay">
+  <div class="tick">✅</div>
+  <h3>LOGIN SUCCESSFUL!</h3>
+  <p>Redirecting to your Dashboard...</p>
+</div>
+
+<script>
+/* ── BACKGROUND GRID CANVAS ── */
+(function(){
+  const canvas = document.getElementById('bg');
+  const ctx = canvas.getContext('2d');
+  function resize(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+
+  // Particles
+  const DOTS = 80;
+  const dots = Array.from({length: DOTS}, () => ({
+    x: Math.random() * window.innerWidth,
+    y: Math.random() * window.innerHeight,
+    r: Math.random() * 1.5 + 0.3,
+    vx: (Math.random() - .5) * .25,
+    vy: (Math.random() - .5) * .25,
+    alpha: Math.random() * .5 + .1,
+  }));
+
+  function draw(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Grid lines
+    ctx.strokeStyle = '#0a2030'; ctx.lineWidth = .5;
+    const gx = 60, gy = 60;
+    for(let x = 0; x < canvas.width; x += gx){
+      ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x, canvas.height); ctx.stroke();
+    }
+    for(let y = 0; y < canvas.height; y += gy){
+      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width, y); ctx.stroke();
+    }
+    // Dots + connections
+    dots.forEach(d => {
+      d.x += d.vx; d.y += d.vy;
+      if(d.x < 0 || d.x > canvas.width) d.vx *= -1;
+      if(d.y < 0 || d.y > canvas.height) d.vy *= -1;
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, d.r, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(0,200,120,${d.alpha})`;
+      ctx.fill();
+      dots.forEach(d2 => {
+        const dist = Math.hypot(d.x-d2.x, d.y-d2.y);
+        if(dist < 100){
+          ctx.beginPath();
+          ctx.strokeStyle = `rgba(0,200,120,${.07*(1-dist/100)})`;
+          ctx.lineWidth = .5;
+          ctx.moveTo(d.x, d.y); ctx.lineTo(d2.x, d2.y); ctx.stroke();
+        }
+      });
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ── MINI CHART ── */
+(function(){
+  const canvas = document.getElementById('miniChart');
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth * 2;
+  canvas.height = 200;
+  ctx.scale(2, 1);
+  const W = canvas.offsetWidth, H = 100;
+
+  // Fake price data
+  const prices = [2680,2710,2695,2740,2720,2760,2790,2775,2810,2830,2805,2860,2845,2880,2910,2895,2930,2945];
+  const min = Math.min(...prices) - 30;
+  const max = Math.max(...prices) + 30;
+  const pts = prices.map((p,i) => ({
+    x: (i / (prices.length-1)) * W,
+    y: H - ((p - min) / (max - min)) * H
+  }));
+
+  // Gradient fill
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, 'rgba(0,255,136,0.25)');
+  grad.addColorStop(1, 'rgba(0,255,136,0)');
+
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  pts.forEach((p,i) => { if(i) ctx.lineTo(p.x, p.y); });
+  ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
+  ctx.fillStyle = grad; ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  pts.forEach((p,i) => { if(i) ctx.lineTo(p.x, p.y); });
+  ctx.strokeStyle = '#00ff88'; ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round'; ctx.stroke();
+
+  // Last point dot
+  const last = pts[pts.length-1];
+  ctx.beginPath(); ctx.arc(last.x, last.y, 5, 0, Math.PI*2);
+  ctx.fillStyle = '#00ff88';
+  ctx.shadowColor = '#00ff88'; ctx.shadowBlur = 12;
+  ctx.fill(); ctx.shadowBlur = 0;
+})();
+
+/* ── TAB SWITCH ── */
+function switchTab(tab){
+  const isLogin = tab === 'login';
+  document.getElementById('loginForm').style.display    = isLogin ? 'block' : 'none';
+  document.getElementById('registerForm').style.display = isLogin ? 'none'  : 'block';
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', (isLogin && i===0) || (!isLogin && i===1));
+  });
+}
+
+/* ── TOGGLE PASSWORD ── */
+function togglePwd(id, btn){
+  const inp = document.getElementById(id);
+  const isText = inp.type === 'text';
+  inp.type = isText ? 'password' : 'text';
+  btn.textContent = isText ? '👁' : '🙈';
+}
+
+/* ── LOGIN HANDLER — FIXED VERSION ── */
+function handleLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPass').value.trim();
+
+  // ── CHECK: both fields must be filled ──
+  if(!email || !pass){
+    shake(document.querySelector('.right-panel'));
+    alert('⚠️ Please enter your email and password!');
+    return;
+  }
+
+  // ── SHOW success animation ──
+  const overlay = document.getElementById('successOverlay');
+  overlay.style.display = 'flex';
+
+  // ── THE FIX: Create a real HTML form and submit it ──
+  // fetch() does NOT follow Flask redirects in the browser.
+  // A real form.submit() DOES — the browser navigates properly.
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = '/login';
+
+  const emailInput = document.createElement('input');
+  emailInput.type  = 'hidden';
+  emailInput.name  = 'email';
+  emailInput.value = email;
+
+  const passInput = document.createElement('input');
+  passInput.type  = 'hidden';
+  passInput.name  = 'password';
+  passInput.value = pass;
+
+  form.appendChild(emailInput);
+  form.appendChild(passInput);
+  document.body.appendChild(form);
+
+  // Submit after short delay so animation shows
+  setTimeout(() => {
+    form.submit();
+  }, 800);
+}
+
+/* ── REGISTER HANDLER — sends data to Flask ── */
+function handleRegister(){
+  const name  = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const pass  = document.getElementById('regPass').value.trim();
+
+  // Check: all fields must be filled
+  if(!name || !email || !pass){
+    alert('⚠️ Please fill all fields!');
+    return;
+  }
+  if(pass.length < 6){
+    alert('⚠️ Password must be at least 6 characters!');
+    return;
+  }
+
+  // ── THE FIX: real HTML form submit ──
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = '/register';
+  const fields = {name, email, password: pass};
+  Object.entries(fields).forEach(([key, val]) => {
+    const inp = document.createElement('input');
+    inp.type = 'hidden'; inp.name = key; inp.value = val;
+    form.appendChild(inp);
+  });
+  document.body.appendChild(form);
+  form.submit();
+}
+
+/* ── SHAKE ANIMATION ── */
+function shake(el){
+  el.style.animation = 'none';
+  el.style.transition = 'transform .1s';
+  let count = 0;
+  const directions = [-8, 8, -6, 6, -3, 3, 0];
+  const interval = setInterval(() => {
+    el.style.transform = `translateX(${directions[count]}px)`;
+    count++;
+    if(count >= directions.length){ clearInterval(interval); el.style.transform = ''; }
+  }, 60);
+}
+
+/* ══════════════════════════════════════
+   FORGOT PASSWORD FUNCTIONS
+══════════════════════════════════════ */
+function openForgotPassword(){
+  document.getElementById('forgotStep1').style.display = 'block';
+  document.getElementById('forgotStep2').style.display = 'none';
+  document.getElementById('forgotModal').style.display = 'flex';
+}
+function closeForgot(){
+  document.getElementById('forgotModal').style.display = 'none';
+}
+function sendResetOTP(){
+  const email = document.getElementById('forgotEmail').value.trim();
+  if(!email){ alert('⚠️ Please enter your email address!'); return; }
+  // Show step 2
+  document.getElementById('forgotEmailShow').textContent = 'OTP sent to: ' + email;
+  document.getElementById('forgotStep1').style.display = 'none';
+  document.getElementById('forgotStep2').style.display = 'block';
+  // Demo: OTP is always 123456
+  alert('📧 Demo Mode: Your OTP is 123456\n(In real app, this would be emailed to you)');
+}
+function verifyOTP(){
+  const otp      = document.getElementById('forgotOTP').value.trim();
+  const newPass  = document.getElementById('forgotNewPass').value.trim();
+  if(otp !== '123456'){ alert('❌ Wrong OTP! Use: 123456'); return; }
+  if(!newPass || newPass.length < 6){ alert('⚠️ Password must be at least 6 characters!'); return; }
+  closeForgot();
+  alert('✅ Password reset successfully!\nNow login with your new password.');
+}
+
+/* ══════════════════════════════════════
+   MOBILE OTP FUNCTIONS
+══════════════════════════════════════ */
+function mobileOTP(){
+  document.getElementById('otpStep1').style.display = 'block';
+  document.getElementById('otpStep2').style.display = 'none';
+  document.getElementById('otpModal').style.display = 'flex';
+}
+function closeOTP(){
+  document.getElementById('otpModal').style.display = 'none';
+}
+function sendMobileOTP(){
+  const phone = document.getElementById('otpPhone').value.trim();
+  if(!phone || phone.length < 8){ alert('⚠️ Please enter a valid phone number!'); return; }
+  document.getElementById('otpPhoneShow').textContent = 'OTP sent to: ' + phone;
+  document.getElementById('otpStep1').style.display = 'none';
+  document.getElementById('otpStep2').style.display = 'block';
+}
+function verifyMobileOTP(){
+  const otp = document.getElementById('otpCode').value.trim();
+  if(otp !== '654321'){ alert('❌ Wrong OTP! Use: 654321'); return; }
+  closeOTP();
+  // Show success and redirect
+  const overlay = document.getElementById('successOverlay');
+  overlay.style.display = 'flex';
+  setTimeout(()=>{ window.location.href = '/dashboard'; }, 1600);
+}
+
+/* ══════════════════════════════════════
+   GOOGLE LOGIN
+══════════════════════════════════════ */
+function googleLogin(){
+  // Show info popup
+  const popup = document.createElement('div');
+  popup.style.cssText = `
+    position:fixed;inset:0;z-index:999;background:#000000bb;
+    display:flex;align-items:center;justify-content:center;`;
+  popup.innerHTML = `
+    <div style="background:#060f14;border:1px solid #0d2d3a;border-radius:16px;
+      padding:28px;width:340px;text-align:center;animation:popUp .25s ease both;">
+      <div style="font-size:40px;margin-bottom:12px;">🔴</div>
+      <div style="font-family:'Orbitron',monospace;font-size:13px;font-weight:700;
+        color:#ddeef5;letter-spacing:1px;margin-bottom:8px;">GOOGLE LOGIN</div>
+      <div style="font-size:12px;color:#7aaabb;margin-bottom:20px;line-height:1.6;">
+        Google OAuth requires a live server with<br/>HTTPS and a Google Cloud API key.<br/>
+        <span style="color:#ffd166;">Available when you deploy online!</span><br/><br/>
+        For now, use <strong style="color:#00ff88;">email + password</strong> login.
+      </div>
+      <button onclick="this.closest('div[style]').remove()"
+        style="padding:10px 24px;background:linear-gradient(90deg,#00ff88,#00c9ff);
+        border:none;border-radius:8px;font-family:'Orbitron',monospace;font-size:11px;
+        font-weight:700;color:#020e06;cursor:pointer;">OK, GOT IT</button>
+    </div>`;
+  document.body.appendChild(popup);
+}
+</script>
+</body>
+</html>

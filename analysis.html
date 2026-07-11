@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>StockIQ — Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root { --bg:#030a0e; --bg2:#060f14; --bg3:#0a1a22; --border:#0d2d3a; --green:#00ff88; --cyan:#00d4ff; --red:#ff4560; --yellow:#ffd166; --text:#ddeef5; --muted:#3a6070; --mid:#7aaabb; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);font-family:'Rajdhani',sans-serif;color:var(--text);display:flex;height:100vh;overflow:hidden;}
+.sidebar{width:220px;min-width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;}
+.sb-brand{padding:22px 20px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.sb-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--green),var(--cyan));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.sb-name{font-family:'Orbitron',monospace;font-size:16px;font-weight:900;background:linear-gradient(90deg,var(--green),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sb-sec{padding:18px 14px 6px;font-size:10px;letter-spacing:3px;color:var(--muted);}
+.sb-nav{flex:1;padding:0 10px;}
+.ni{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;cursor:pointer;margin-bottom:3px;font-size:14px;font-weight:600;color:var(--mid);transition:all .2s;}
+.ni:hover{background:var(--bg3);color:var(--text);}
+.ni.active{background:linear-gradient(90deg,#00ff8818,#00d4ff0a);color:var(--green);border-left:2px solid var(--green);}
+.sb-user{padding:16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--green));display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#03080e;}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{height:58px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;justify-content:space-between; flex-shrink:0;}
+.pt{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;letter-spacing:1px;}
+.ps{font-size:12px;color:var(--muted);margin-top:1px;}
+.content { flex: 1; padding: 24px; overflow-y: auto; }
+
+.stock-selector { background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 6px; font-family: 'Orbitron', monospace; font-size: 14px; font-weight:700; outline: none; cursor: pointer; color:var(--cyan); }
+
+/* Analysis Cards */
+.analysis-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; background: var(--bg2); padding: 24px; border-radius: 12px; border: 1px solid var(--border); }
+.comp-name { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+.comp-sector { font-size: 14px; color: var(--mid); }
+.comp-price { font-family: 'Orbitron', monospace; font-size: 32px; color: var(--green); }
+
+.grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.metric-card { background: var(--bg2); border: 1px solid var(--border); padding: 16px; border-radius: 12px; text-align: center; }
+.m-title { font-size: 11px; letter-spacing: 2px; color: var(--muted); margin-bottom: 8px; }
+.m-value { font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 700; color: var(--text); }
+.m-good { color: var(--green); }
+.m-bad { color: var(--red); }
+.m-warn { color: var(--yellow); }
+
+.details-box { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+.details-title { font-family: 'Orbitron', monospace; color: var(--cyan); font-size: 14px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sb-brand"><div class="sb-logo">📈</div><div class="sb-name">STOCKIQ</div></div>
+  <div class="sb-sec">MAIN MENU</div>
+  <nav class="sb-nav">
+    <div class="ni" onclick="location.href='/dashboard'"><span>⬛</span> Dashboard</div>
+    <div class="ni" onclick="location.href='/markets'"><span>📊</span> Markets</div>
+    <div class="ni" onclick="location.href='/charts'"><span>🕯️</span> Charts</div>
+    <div class="ni" onclick="location.href='/predict'"><span>🤖</span> AI Predict</div>
+    <div class="ni" onclick="location.href='/portfolio'"><span>💼</span> Portfolio</div>
+    <div class="ni" onclick="location.href='/watchlist'"><span>⭐</span> Watchlist</div>
+    <div class="ni" onclick="location.href='/news'"><span>📰</span> News</div>
+    <div class="sb-sec" style="padding-left:0;margin-top:8px;">TOOLS</div>
+    <div class="ni" onclick="location.href='/screener'"><span>🔍</span> Screener</div>
+    <div class="ni active"><span>📐</span> Analysis</div>
+    <div class="ni" onclick="location.href='/settings'"><span>⚙️</span> Settings</div>
+    <div class="ni" onclick="location.href='/logout'" style="color:#ff4560"><span>🚪</span> Logout</div>
+  </nav>
+  <div class="sb-user"><div class="av">VK</div><div><div style="font-size:13px;font-weight:700;">Virat Kohli</div><div style="font-size:10px;color:#3a6070;">◈ PRO TRADER</div></div></div>
+</aside>
+<div class="main">
+  <div class="topbar">
+    <div><div class="pt">ANALYSIS</div><div class="ps">Fundamental Data & Metrics</div></div>
+    <select class="stock-selector" id="stockSelect" onchange="loadAnalysis(this.value)">
+      <option value="RELIANCE">RELIANCE</option>
+      <option value="TCS">TCS</option>
+      <option value="HDFC">HDFC BANK</option>
+    </select>
+  </div>
+  
+  <div class="content">
+    
+    <div class="analysis-header">
+      <div>
+        <div class="comp-name" id="c-name">Reliance Industries Ltd.</div>
+        <div class="comp-sector" id="c-sector">Sector: Energy / Conglomerate</div>
+      </div>
+      <div style="text-align: right;">
+        <div class="comp-price" id="c-price">₹2,945</div>
+        <div style="color: var(--muted); font-size: 12px; margin-top: 4px;">Market Cap: <span id="c-mcap" style="color:var(--text);">₹19.2L Cr</span></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="metric-card">
+        <div class="m-title">P/E RATIO</div>
+        <div class="m-value" id="m-pe">28.4</div>
+      </div>
+      <div class="metric-card">
+        <div class="m-title">EPS (TTM)</div>
+        <div class="m-value" id="m-eps">₹102.5</div>
+      </div>
+      <div class="metric-card">
+        <div class="m-title">ROE</div>
+        <div class="m-value m-good" id="m-roe">14.2%</div>
+      </div>
+      <div class="metric-card">
+        <div class="m-title">DEBT TO EQUITY</div>
+        <div class="m-value m-warn" id="m-debt">0.42</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="metric-card">
+        <div class="m-title">DIVIDEND YIELD</div>
+        <div class="m-value" id="m-div">0.23%</div>
+      </div>
+      <div class="metric-card">
+        <div class="m-title">BOOK VALUE</div>
+        <div class="m-value" id="m-book">₹1,180</div>
+      </div>
+      <div class="metric-card">
+        <div class="m-title">PRICE TO BOOK</div>
+        <div class="m-value" id="m-pb">2.49</div>
+      </div>
+      <div class="metric-card">
+        <div class="m-title">PROMOTER HOLDING</div>
+        <div class="m-value" id="m-promoter">50.3%</div>
+      </div>
+    </div>
+
+    <div class="details-box">
+      <div class="details-title">AI FUNDAMENTAL SUMMARY</div>
+      <p id="ai-summary" style="color: var(--mid); line-height: 1.6; font-size: 14px;">
+        Reliance Industries shows strong fundamental stability. The Price to Earnings (P/E) ratio of 28.4 is slightly above the industry average, indicating investors expect high future growth. The Debt to Equity ratio is well managed at 0.42, showing a healthy balance sheet. Return on Equity (ROE) at 14.2% reflects efficient management in generating profits from shareholders' capital.
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const analysisData = {
+    'RELIANCE': {
+      name: 'Reliance Industries Ltd.', sector: 'Sector: Energy / Conglomerate', price: '₹2,945', mcap: '₹19.2L Cr',
+      pe: '28.4', eps: '₹102.5', roe: '14.2%', debt: '0.42', debtCls: 'm-warn',
+      div: '0.23%', book: '₹1,180', pb: '2.49', promoter: '50.3%',
+      summary: "Reliance Industries shows strong fundamental stability. The Price to Earnings (P/E) ratio of 28.4 is slightly above the industry average, indicating investors expect high future growth. The Debt to Equity ratio is well managed at 0.42, showing a healthy balance sheet. Return on Equity (ROE) at 14.2% reflects efficient management in generating profits from shareholders' capital."
+    },
+    'TCS': {
+      name: 'Tata Consultancy Services', sector: 'Sector: Information Technology', price: '₹3,812', mcap: '₹14.1L Cr',
+      pe: '31.2', eps: '₹122.4', roe: '46.9%', debt: '0.00', debtCls: 'm-good',
+      div: '1.24%', book: '₹260', pb: '14.6', promoter: '72.3%',
+      summary: "TCS boasts exceptional fundamentals with a zero-debt balance sheet and a massive Return on Equity (ROE) of 46.9%. While the Price to Book (P/B) ratio of 14.6 appears highly overvalued by traditional metrics, it is standard for asset-light IT service giants. A healthy dividend yield of 1.24% adds value for long-term investors."
+    },
+    'HDFC': {
+      name: 'HDFC Bank Ltd.', sector: 'Sector: Banking & Finance', price: '₹1,734', mcap: '₹12.8L Cr',
+      pe: '16.8', eps: '₹103.2', roe: '16.5%', debt: '0.90', debtCls: 'm-warn',
+      div: '1.10%', book: '₹620', pb: '2.8', promoter: '0.0%',
+      summary: "HDFC Bank is trading at an attractive P/E ratio of 16.8, which is historically low for the banking giant. The Return on Equity (ROE) is solid at 16.5%. Being a bank, the higher debt-to-equity is standard due to deposits. Promoters hold 0% directly as it is fully institutionally and publicly owned, reflecting massive FII/DII trust."
+    }
+  };
+
+  function loadAnalysis(sym) {
+    const data = analysisData[sym];
+    document.getElementById('c-name').innerText = data.name;
+    document.getElementById('c-sector').innerText = data.sector;
+    document.getElementById('c-price').innerText = data.price;
+    document.getElementById('c-mcap').innerText = data.mcap;
+    
+    document.getElementById('m-pe').innerText = data.pe;
+    document.getElementById('m-eps').innerText = data.eps;
+    document.getElementById('m-roe').innerText = data.roe;
+    
+    const debtEl = document.getElementById('m-debt');
+    debtEl.innerText = data.debt;
+    debtEl.className = 'm-value ' + data.debtCls;
+
+    document.getElementById('m-div').innerText = data.div;
+    document.getElementById('m-book').innerText = data.book;
+    document.getElementById('m-pb').innerText = data.pb;
+    document.getElementById('m-promoter').innerText = data.promoter;
+    
+    document.getElementById('ai-summary').innerText = data.summary;
+  }
+</script>
+</body>
+</html>

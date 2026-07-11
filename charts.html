@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>StockIQ — Charts</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#030a0e;font-family:'Rajdhani',sans-serif;color:#ddeef5;display:flex;height:100vh;}
+.sidebar{width:220px;min-width:220px;background:#060f14;border-right:1px solid #0d2d3a;display:flex;flex-direction:column;}
+.sb-brand{padding:22px 20px 18px;border-bottom:1px solid #0d2d3a;display:flex;align-items:center;gap:10px;}
+.sb-logo{width:36px;height:36px;background:linear-gradient(135deg,#00ff88,#00d4ff);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.sb-name{font-family:'Orbitron',monospace;font-size:16px;font-weight:900;background:linear-gradient(90deg,#00ff88,#00d4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sb-sec{padding:18px 14px 6px;font-size:10px;letter-spacing:3px;color:#3a6070;}
+.sb-nav{flex:1;padding:0 10px;}
+.ni{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;cursor:pointer;margin-bottom:3px;font-size:14px;font-weight:600;color:#7aaabb;transition:all .2s;}
+.ni:hover{background:#0a1a22;color:#ddeef5;}
+.ni.active{background:linear-gradient(90deg,#00ff8818,#00d4ff0a);color:#00ff88;border-left:2px solid #00ff88;}
+.nb{margin-left:auto;background:#ff456020;border:1px solid #ff456040;color:#ff4560;font-size:10px;padding:2px 7px;border-radius:10px;}
+.sb-user{padding:16px;border-top:1px solid #0d2d3a;display:flex;align-items:center;gap:10px;}
+.av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#00d4ff,#00ff88);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#03080e;}
+.main{flex:1;display:flex;flex-direction:column;}
+.topbar{height:58px;background:#060f14;border-bottom:1px solid #0d2d3a;display:flex;align-items:center;justify-content:space-between;padding:0 24px;gap:12px;}
+.pt{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;letter-spacing:1px;}
+.ps{font-size:12px;color:#3a6070;margin-top:1px;}
+.body{flex:1;padding:24px; display:flex; flex-direction:column;}
+
+/* Chart Container styling */
+.chart-container { flex: 1; background: #060f14; border: 1px solid #0d2d3a; border-radius: 12px; padding: 20px; position: relative; }
+.chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.stock-title { font-family: 'Orbitron', monospace; font-size: 24px; font-weight: 700; color: #00d4ff; }
+.stock-price { font-size: 28px; font-weight: 700; }
+.stock-change.up { color: #00ff88; font-size: 16px; font-weight: 600; }
+.stock-change.down { color: #ff4560; font-size: 16px; font-weight: 600; }
+.stock-selector { background: #0a1a22; border: 1px solid #0d2d3a; color: #ddeef5; padding: 10px; border-radius: 8px; font-family: 'Rajdhani', sans-serif; font-size: 16px; outline: none; cursor: pointer; }
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sb-brand"><div class="sb-logo">📈</div><div class="sb-name">STOCKIQ</div></div>
+  <div class="sb-sec">MAIN MENU</div>
+  <nav class="sb-nav">
+    <div class="ni" onclick="location.href='/dashboard'"><span>⬛</span> Dashboard</div>
+    <div class="ni" onclick="location.href='/markets'"><span>📊</span> Markets</div>
+    <div class="ni active"><span>🕯️</span> Charts</div>
+    <div class="ni" onclick="location.href='/predict'"><span>🤖</span> AI Predict<span class="nb">NEW</span></div>
+    <div class="ni" onclick="location.href='/portfolio'"><span>💼</span> Portfolio</div>
+    <div class="ni" onclick="location.href='/watchlist'"><span>⭐</span> Watchlist</div>
+    <div class="ni" onclick="location.href='/news'"><span>📰</span> News</div>
+    <div class="sb-sec" style="padding-left:0;margin-top:8px;">TOOLS</div>
+    <div class="ni" onclick="location.href='/screener'"><span>🔍</span> Screener</div>
+    <div class="ni" onclick="location.href='/analysis'"><span>📐</span> Analysis</div>
+    <div class="ni" onclick="location.href='/settings'"><span>⚙️</span> Settings</div>
+    <div class="ni" onclick="location.href='/logout'" style="color:#ff4560"><span>🚪</span> Logout</div>
+  </nav>
+  <div class="sb-user"><div class="av">MJ</div><div><div style="font-size:13px;font-weight:700;">Manoj JN</div><div style="font-size:10px;color:#3a6070;">◈ PRO TRADER</div></div></div>
+</aside>
+<div class="main">
+  <div class="topbar">
+    <div><div class="pt">TECHNICAL CHARTS</div><div class="ps">Interactive Live Chart Analysis</div></div>
+    <select class="stock-selector" id="stockSelect" onchange="loadChartData(this.value)">
+      <option value="RELIANCE">RELIANCE</option>
+      <option value="TCS">TCS</option>
+      <option value="INFOSYS">INFOSYS</option>
+      <option value="HDFC">HDFC</option>
+      <option value="AAPL">APPLE</option>
+    </select>
+  </div>
+  <div class="body">
+    <div class="chart-container">
+      <div class="chart-header">
+        <div>
+          <div class="stock-title" id="c-title">RELIANCE</div>
+          <div class="stock-price" id="c-price">₹--</div>
+          <div class="stock-change" id="c-change">-- (---%)</div>
+        </div>
+      </div>
+      <div style="position: relative; height: 75%; width: 100%;">
+        <canvas id="mainChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let stockChart; // Variable to hold our Chart.js instance
+
+  function loadChartData(symbol) {
+    // Fetch data from your Python backend for the specific stock
+    fetch(`/api/stock/${symbol}`)
+      .then(res => res.json())
+      .then(data => {
+        // Update the text on the screen
+        document.getElementById('c-title').innerText = data.symbol;
+        document.getElementById('c-price').innerText = '₹' + data.current.toLocaleString();
+        
+        const changeEl = document.getElementById('c-change');
+        const isUp = data.change >= 0;
+        changeEl.innerText = `${isUp ? '▲' : '▼'} ${Math.abs(data.change)} (${data.pct}%)`;
+        changeEl.className = isUp ? 'stock-change up' : 'stock-change down';
+
+        // Prepare data for the chart
+        const prices = data.prices;
+        const labels = prices.map((_, index) => `Day ${index + 1}`);
+        const lineColor = isUp ? '#00ff88' : '#ff4560';
+
+        // Destroy old chart if it exists so we can draw a new one
+        if (stockChart) {
+          stockChart.destroy();
+        }
+
+        // Draw the new Chart
+        const ctx = document.getElementById('mainChart').getContext('2d');
+        stockChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: `${symbol} Price`,
+              data: prices,
+              borderColor: lineColor,
+              backgroundColor: lineColor + '20', // transparent fill
+              borderWidth: 3,
+              pointRadius: 0,
+              pointHitRadius: 10,
+              fill: true,
+              tension: 0.3 // smooth curves
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { grid: { color: '#0d2d3a' }, ticks: { color: '#4a7a8a' } },
+              y: { grid: { color: '#0d2d3a' }, ticks: { color: '#4a7a8a' } }
+            },
+            interaction: { mode: 'index', intersect: false }
+          }
+        });
+      })
+      .catch(err => console.error("Error loading chart data:", err));
+  }
+
+  // Load RELIANCE by default when the page opens
+  window.onload = () => loadChartData('RELIANCE');
+</script>
+</body>
+</html>

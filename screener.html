@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>StockIQ — Screener</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root { --bg:#030a0e; --bg2:#060f14; --bg3:#0a1a22; --border:#0d2d3a; --green:#00ff88; --cyan:#00d4ff; --red:#ff4560; --text:#ddeef5; --muted:#3a6070; --mid:#7aaabb; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);font-family:'Rajdhani',sans-serif;color:var(--text);display:flex;height:100vh;overflow:hidden;}
+.sidebar{width:220px;min-width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;}
+.sb-brand{padding:22px 20px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.sb-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--green),var(--cyan));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.sb-name{font-family:'Orbitron',monospace;font-size:16px;font-weight:900;background:linear-gradient(90deg,var(--green),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sb-sec{padding:18px 14px 6px;font-size:10px;letter-spacing:3px;color:var(--muted);}
+.sb-nav{flex:1;padding:0 10px;}
+.ni{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;cursor:pointer;margin-bottom:3px;font-size:14px;font-weight:600;color:var(--mid);transition:all .2s;}
+.ni:hover{background:var(--bg3);color:var(--text);}
+.ni.active{background:linear-gradient(90deg,#00ff8818,#00d4ff0a);color:var(--green);border-left:2px solid var(--green);}
+.sb-user{padding:16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--green));display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#03080e;}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{height:58px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:12px;flex-shrink:0;}
+.pt{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;letter-spacing:1px;}
+.ps{font-size:12px;color:var(--muted);margin-top:1px;}
+.content { flex: 1; padding: 24px; overflow-y: auto; }
+
+/* Filters */
+.filters-bar { background: var(--bg2); border: 1px solid var(--border); padding: 16px; border-radius: 12px; display: flex; gap: 16px; align-items: center; margin-bottom: 20px; flex-wrap: wrap;}
+.filter-group { display: flex; flex-direction: column; gap: 6px; }
+.filter-label { font-size: 11px; letter-spacing: 1px; color: var(--muted); }
+.filter-select { background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 6px; font-family: 'Rajdhani', sans-serif; font-size: 14px; outline: none;}
+
+/* Table */
+.screener-table { width: 100%; border-collapse: collapse; background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.screener-table th { background: var(--bg3); color: var(--muted); font-size: 11px; letter-spacing: 1px; padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+.screener-table td { padding: 14px 16px; border-bottom: 1px solid rgba(13,45,58,0.5); font-size: 14px; font-weight: 600; }
+.screener-table tr:hover td { background: rgba(0,255,136,0.03); }
+.sym { font-family: 'Orbitron', monospace; color: var(--cyan); }
+.up { color: var(--green); }
+.down { color: var(--red); }
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sb-brand"><div class="sb-logo">📈</div><div class="sb-name">STOCKIQ</div></div>
+  <div class="sb-sec">MAIN MENU</div>
+  <nav class="sb-nav">
+    <div class="ni" onclick="location.href='/dashboard'"><span>⬛</span> Dashboard</div>
+    <div class="ni" onclick="location.href='/markets'"><span>📊</span> Markets</div>
+    <div class="ni" onclick="location.href='/charts'"><span>🕯️</span> Charts</div>
+    <div class="ni" onclick="location.href='/predict'"><span>🤖</span> AI Predict</div>
+    <div class="ni" onclick="location.href='/portfolio'"><span>💼</span> Portfolio</div>
+    <div class="ni" onclick="location.href='/watchlist'"><span>⭐</span> Watchlist</div>
+    <div class="ni" onclick="location.href='/news'"><span>📰</span> News</div>
+    <div class="sb-sec" style="padding-left:0;margin-top:8px;">TOOLS</div>
+    <div class="ni active"><span>🔍</span> Screener</div>
+    <div class="ni" onclick="location.href='/analysis'"><span>📐</span> Analysis</div>
+    <div class="ni" onclick="location.href='/settings'"><span>⚙️</span> Settings</div>
+    <div class="ni" onclick="location.href='/logout'" style="color:#ff4560"><span>🚪</span> Logout</div>
+  </nav>
+  <div class="sb-user"><div class="av">VK</div><div><div style="font-size:13px;font-weight:700;">Virat Kohli</div><div style="font-size:10px;color:#3a6070;">◈ PRO TRADER</div></div></div>
+</aside>
+<div class="main">
+  <div class="topbar">
+    <div><div class="pt">SCREENER</div><div class="ps">Filter and discover stocks</div></div>
+  </div>
+  
+  <div class="content">
+    <div class="filters-bar">
+      <div class="filter-group">
+        <label class="filter-label">SECTOR</label>
+        <select class="filter-select" id="f-sector" onchange="runScreener()">
+          <option value="All">All Sectors</option>
+          <option value="IT">IT</option>
+          <option value="Energy">Energy</option>
+          <option value="Finance">Finance</option>
+          <option value="Auto">Auto</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">MARKET CAP</label>
+        <select class="filter-select" id="f-mcap" onchange="runScreener()">
+          <option value="All">Any Cap</option>
+          <option value="Large">Large Cap (> ₹1L Cr)</option>
+          <option value="Mid">Mid Cap (₹20K - 1L Cr)</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">P/E RATIO</label>
+        <select class="filter-select" id="f-pe" onchange="runScreener()">
+          <option value="All">Any P/E</option>
+          <option value="Under20">Under 20</option>
+          <option value="20to40">20 to 40</option>
+          <option value="Over40">Over 40</option>
+        </select>
+      </div>
+    </div>
+
+    <table class="screener-table">
+      <thead>
+        <tr>
+          <th>SYMBOL</th>
+          <th>COMPANY NAME</th>
+          <th>SECTOR</th>
+          <th>PRICE</th>
+          <th>MARKET CAP</th>
+          <th>P/E RATIO</th>
+          <th>DIV YIELD</th>
+        </tr>
+      </thead>
+      <tbody id="screener-body">
+        <!-- Javascript will populate this -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  const stocks = [
+    { sym: 'RELIANCE', name: 'Reliance Industries', sector: 'Energy', price: '₹2,945', mcap: 'Large', mcapVal: '₹19.2L Cr', pe: 28.4, div: '0.23%' },
+    { sym: 'TCS', name: 'Tata Consultancy Svcs', sector: 'IT', price: '₹3,812', mcap: 'Large', mcapVal: '₹14.1L Cr', pe: 31.2, div: '1.24%' },
+    { sym: 'INFOSYS', name: 'Infosys Limited', sector: 'IT', price: '₹1,562', mcap: 'Large', mcapVal: '₹6.4L Cr', pe: 23.5, div: '2.10%' },
+    { sym: 'HDFC', name: 'HDFC Bank', sector: 'Finance', price: '₹1,734', mcap: 'Large', mcapVal: '₹12.8L Cr', pe: 16.8, div: '1.10%' },
+    { sym: 'WIPRO', name: 'Wipro Limited', sector: 'IT', price: '₹478', mcap: 'Mid', mcapVal: '₹2.5L Cr', pe: 19.2, div: '0.85%' },
+    { sym: 'TATAMOTORS', name: 'Tata Motors', sector: 'Auto', price: '₹980', mcap: 'Large', mcapVal: '₹3.6L Cr', pe: 18.4, div: '0.40%' },
+    { sym: 'BAJFINANCE', name: 'Bajaj Finance', sector: 'Finance', price: '₹6,820', mcap: 'Large', mcapVal: '₹4.2L Cr', pe: 42.1, div: '0.55%' },
+    { sym: 'ONGC', name: 'Oil & Natural Gas', sector: 'Energy', price: '₹262', mcap: 'Mid', mcapVal: '₹3.3L Cr', pe: 7.2, div: '4.80%' }
+  ];
+
+  function runScreener() {
+    const fSector = document.getElementById('f-sector').value;
+    const fMcap = document.getElementById('f-mcap').value;
+    const fPe = document.getElementById('f-pe').value;
+
+    const tbody = document.getElementById('screener-body');
+    tbody.innerHTML = '';
+
+    stocks.forEach(stock => {
+      // Sector Filter
+      if (fSector !== 'All' && stock.sector !== fSector) return;
+      // Market Cap Filter
+      if (fMcap !== 'All' && stock.mcap !== fMcap) return;
+      // PE Filter
+      if (fPe === 'Under20' && stock.pe >= 20) return;
+      if (fPe === '20to40' && (stock.pe < 20 || stock.pe > 40)) return;
+      if (fPe === 'Over40' && stock.pe <= 40) return;
+
+      tbody.innerHTML += `
+        <tr>
+          <td class="sym">${stock.sym}</td>
+          <td style="color:var(--text);">${stock.name}</td>
+          <td style="color:var(--mid);">${stock.sector}</td>
+          <td class="up">${stock.price}</td>
+          <td>${stock.mcapVal}</td>
+          <td>${stock.pe}</td>
+          <td style="color:var(--cyan);">${stock.div}</td>
+        </tr>
+      `;
+    });
+
+    if (tbody.innerHTML === '') {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--muted); padding: 30px;">No stocks match your filter criteria.</td></tr>';
+    }
+  }
+
+  // Run on load
+  runScreener();
+</script>
+</body>
+</html>

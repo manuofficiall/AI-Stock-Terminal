@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>StockIQ — Market News</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root{
+      --bg:#030a0e;--bg2:#060f14;--bg3:#0a1a22;--border:#0d2d3a;
+      --green:#00ff88;--red:#ff4560;--cyan:#00d4ff;--yellow:#ffd166;
+      --text:#ddeef5;--muted:#3a6070;--mid:#7aaabb;--sidebar-w:220px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;overflow:hidden}
+    body{background:var(--bg);font-family:'Rajdhani',sans-serif;color:var(--text);display:flex;font-size:14px}
+
+    /* SIDEBAR */
+    .sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:10;}
+    .sb-brand{padding:22px 20px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+    .sb-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--green),var(--cyan));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 16px #00ff8840;}
+    .sb-name{font-family:'Orbitron',monospace;font-size:16px;font-weight:900;background:linear-gradient(90deg,var(--green),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .sb-section{padding:14px 14px 6px;font-size:10px;letter-spacing:3px;color:var(--muted);}
+    .sb-nav{flex:1;overflow-y:auto;padding:0 10px;}
+    .nav-item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;cursor:pointer;margin-bottom:3px;font-size:14px;font-weight:600;color:var(--mid);transition:all .2s;}
+    .nav-item:hover{background:var(--bg3);color:var(--text);}
+    .nav-item.active{background:linear-gradient(90deg,#00ff8818,#00d4ff0a);color:var(--green);border-left:2px solid var(--green);}
+    .nav-item .ni{font-size:17px;width:22px;text-align:center;flex-shrink:0;}
+    .nav-badge{margin-left:auto;background:#ff456020;border:1px solid #ff456040;color:var(--red);font-size:10px;padding:2px 7px;border-radius:10px;}
+    .sb-user{padding:16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+    .sb-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--cyan));display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:12px;font-weight:900;color:#000;}
+    .sb-uname{font-weight:700;font-size:13px;}
+    .sb-urole{font-size:10px;color:var(--green);letter-spacing:1px;}
+
+    /* MAIN */
+    .main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+    .topbar{display:flex;align-items:center;gap:16px;padding:0 24px;height:62px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;}
+    .page-title{font-family:'Orbitron',monospace;font-size:16px;font-weight:900;color:var(--green);}
+    .page-sub{font-size:11px;color:var(--muted);letter-spacing:1px;}
+    .topbar-right{margin-left:auto;display:flex;align-items:center;gap:12px;}
+    .live-pill{display:flex;align-items:center;gap:6px;background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.3);color:var(--green);padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:1px;}
+    .live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+
+    /* CONTENT */
+    .content{flex:1;overflow-y:auto;padding:24px;}
+    .content::-webkit-scrollbar{width:4px}
+    .content::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+    /* CONTROLS */
+    .controls{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
+    .search-bar{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 16px;flex:1;max-width:340px;transition:border-color .2s;}
+    .search-bar:focus-within{border-color:var(--green);}
+    .search-bar input{background:none;border:none;outline:none;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;width:100%;}
+    .search-bar input::placeholder{color:var(--muted);}
+    .filter-tabs{display:flex;gap:6px;flex-wrap:wrap;}
+    .ftab{padding:8px 16px;border-radius:8px;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:1px;}
+    .ftab.active,.ftab:hover{background:rgba(0,255,136,.1);border-color:rgba(0,255,136,.4);color:var(--green);}
+    .ftab.bull.active{background:rgba(0,255,136,.1);border-color:var(--green);color:var(--green);}
+    .ftab.bear.active{background:rgba(255,69,96,.1);border-color:var(--red);color:var(--red);}
+    .ftab.neutral.active{background:rgba(0,212,255,.1);border-color:var(--cyan);color:var(--cyan);}
+
+    /* STATS */
+    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+    .stat-mini{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden;}
+    .stat-mini::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+    .stat-mini:nth-child(1)::before{background:var(--cyan);}
+    .stat-mini:nth-child(2)::before{background:var(--green);}
+    .stat-mini:nth-child(3)::before{background:var(--red);}
+    .stat-mini:nth-child(4)::before{background:var(--yellow);}
+    .stat-mini-label{font-size:10px;color:var(--muted);letter-spacing:2px;margin-bottom:8px;}
+    .stat-mini-val{font-family:'Orbitron',monospace;font-size:20px;font-weight:700;}
+    .g{color:var(--green)}.r{color:var(--red)}.c{color:var(--cyan)}.y{color:var(--yellow)}
+
+    /* MAIN GRID */
+    .news-grid{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;}
+
+    /* NEWS CARDS */
+    .news-feed{display:flex;flex-direction:column;gap:14px;}
+
+    .news-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+    .news-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;}
+    .news-card.bull::before{background:var(--green);}
+    .news-card.bear::before{background:var(--red);}
+    .news-card.neutral::before{background:var(--cyan);}
+    .news-card:hover{border-color:rgba(0,255,136,.3);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,255,136,.06);}
+
+    .news-meta{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+    .sentiment-badge{font-size:10px;padding:3px 10px;border-radius:4px;font-weight:700;letter-spacing:1px;flex-shrink:0;}
+    .badge-bull{background:rgba(0,255,136,.1);color:var(--green);border:1px solid rgba(0,255,136,.3);}
+    .badge-bear{background:rgba(255,69,96,.1);color:var(--red);border:1px solid rgba(255,69,96,.3);}
+    .badge-neutral{background:rgba(0,212,255,.1);color:var(--cyan);border:1px solid rgba(0,212,255,.3);}
+    .news-source{font-size:11px;color:var(--muted);font-weight:600;}
+    .news-time{font-size:11px;color:var(--muted);margin-left:auto;}
+    .news-category{font-size:10px;padding:2px 8px;border-radius:4px;background:var(--bg3);color:var(--mid);border:1px solid var(--border);font-weight:700;letter-spacing:1px;}
+
+    .news-headline{font-size:15px;font-weight:700;line-height:1.4;margin-bottom:8px;color:var(--text);}
+    .news-summary{font-size:13px;color:var(--mid);line-height:1.5;margin-bottom:12px;}
+    .news-footer{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+    .news-tag{font-size:10px;padding:3px 9px;border-radius:4px;background:var(--bg3);border:1px solid var(--border);color:var(--mid);cursor:pointer;transition:all .2s;font-weight:600;}
+    .news-tag:hover{border-color:var(--green);color:var(--green);}
+    .news-impact{margin-left:auto;font-size:11px;color:var(--muted);}
+    .impact-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;}
+    .imp-high{background:var(--red);}
+    .imp-med{background:var(--yellow);}
+    .imp-low{background:var(--green);}
+
+    /* FEATURED CARD */
+    .featured-card{background:linear-gradient(135deg,#0a1a22,#060f14);border:1px solid rgba(0,255,136,.2);border-radius:16px;padding:24px;margin-bottom:14px;cursor:pointer;position:relative;overflow:hidden;}
+    .featured-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--green),var(--cyan));}
+    .featured-label{font-family:'Orbitron',monospace;font-size:10px;color:var(--green);letter-spacing:2px;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+    .featured-headline{font-size:18px;font-weight:700;line-height:1.35;margin-bottom:10px;}
+    .featured-summary{font-size:13px;color:var(--mid);line-height:1.5;}
+
+    /* RIGHT PANEL */
+    .right-col{display:flex;flex-direction:column;gap:16px;}
+    .panel-box{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px;}
+    .panel-title{font-family:'Orbitron',monospace;font-size:11px;letter-spacing:2px;margin-bottom:14px;}
+
+    /* TRENDING */
+    .trend-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(13,45,58,.5);cursor:pointer;}
+    .trend-item:last-child{border-bottom:none;}
+    .trend-item:hover .trend-ticker{color:var(--green);}
+    .trend-rank{font-family:'Orbitron',monospace;font-size:11px;color:var(--muted);width:18px;}
+    .trend-info{flex:1;}
+    .trend-ticker{font-weight:700;font-size:13px;transition:color .2s;}
+    .trend-count{font-size:10px;color:var(--muted);}
+    .trend-chg{font-size:12px;font-weight:700;}
+
+    /* SENTIMENT METER */
+    .sentiment-meter{margin-bottom:16px;}
+    .meter-label{display:flex;justify-content:space-between;font-size:11px;margin-bottom:8px;}
+    .meter-bar{height:10px;border-radius:6px;background:var(--bg3);overflow:hidden;display:flex;}
+    .meter-bull{background:var(--green);border-radius:6px 0 0 6px;transition:width .8s ease;}
+    .meter-bear{background:var(--red);border-radius:0 6px 6px 0;transition:width .8s ease;}
+
+    /* NEWS DETAIL MODAL */
+    .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:999;backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;}
+    .overlay.open{display:flex;}
+    .news-modal{background:var(--bg2);border:1px solid var(--border);border-radius:18px;width:100%;max-width:580px;max-height:80vh;overflow-y:auto;padding:30px;position:relative;animation:slideUp .25s ease;}
+    @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    .modal-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;}
+    .modal-close:hover{color:var(--text);}
+    .modal-headline{font-size:20px;font-weight:700;line-height:1.35;margin:14px 0 10px;}
+    .modal-body{font-size:14px;color:var(--mid);line-height:1.7;}
+    .modal-body p{margin-bottom:12px;}
+
+    .toast{position:fixed;bottom:26px;right:26px;background:var(--bg2);border:1px solid var(--green);color:var(--green);padding:12px 20px;border-radius:9px;font-weight:700;font-size:13px;z-index:9999;opacity:0;transform:translateY(14px);transition:all .3s;pointer-events:none;}
+    .toast.show{opacity:1;transform:translateY(0);}
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-logo">📈</div>
+    <div class="sb-name">STOCKIQ</div>
+  </div>
+  <div class="sb-section">MAIN MENU</div>
+  <nav class="sb-nav">
+    <div class="nav-item" onclick="location.href='/dashboard'"><span class="ni">⬛</span> Dashboard</div>
+    <div class="nav-item" onclick="location.href='/dashboard'"><span class="ni">📊</span> Markets</div>
+    <div class="nav-item" onclick="location.href='/dashboard'"><span class="ni">🕯️</span> Charts</div>
+    <div class="nav-item" onclick="location.href='/predict'"><span class="ni">🤖</span> AI Predict<span class="nav-badge">NEW</span></div>
+    <div class="nav-item" onclick="location.href='/portfolio'"><span class="ni">💼</span> Portfolio</div>
+    <div class="nav-item" onclick="location.href='/watchlist'"><span class="ni">⭐</span> Watchlist</div>
+    <div class="nav-item active"><span class="ni">📰</span> News</div>
+    <div class="sb-section" style="padding-left:0">TOOLS</div>
+    <div class="nav-item" onclick="location.href='/dashboard'"><span class="ni">🔍</span> Screener</div>
+    <div class="nav-item" onclick="location.href='/logout'"><span class="ni">🚪</span> Logout</div>
+  </nav>
+  <div class="sb-user">
+    <div class="sb-avatar">MJ</div>
+    <div><div class="sb-uname">Manoj JN</div><div class="sb-urole">◈ PRO TRADER</div></div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <header class="topbar">
+    <div>
+      <div class="page-title">MARKET NEWS</div>
+      <div class="page-sub">Live news & sentiment analysis</div>
+    </div>
+    <div class="topbar-right">
+      <div class="live-pill"><div class="live-dot"></div>LIVE FEED</div>
+    </div>
+  </header>
+
+  <div class="content">
+    <!-- CONTROLS -->
+    <div class="controls">
+      <div class="search-bar">
+        <span style="color:var(--muted)">🔍</span>
+        <input type="text" id="searchInput" placeholder="Search news..." oninput="filterNews()"/>
+      </div>
+      <div class="filter-tabs">
+        <button class="ftab active"    onclick="filterBy('all',this)">ALL</button>
+        <button class="ftab bull"      onclick="filterBy('bull',this)">🟢 BULLISH</button>
+        <button class="ftab bear"      onclick="filterBy('bear',this)">🔴 BEARISH</button>
+        <button class="ftab neutral"   onclick="filterBy('neutral',this)">🔵 NEUTRAL</button>
+        <button class="ftab"           onclick="filterBy('NIFTY',this)">NIFTY</button>
+        <button class="ftab"           onclick="filterBy('RBI',this)">RBI</button>
+        <button class="ftab"           onclick="filterBy('Global',this)">GLOBAL</button>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-mini"><div class="stat-mini-label">TOTAL NEWS</div><div class="stat-mini-val c" id="st-total">0</div></div>
+      <div class="stat-mini"><div class="stat-mini-label">BULLISH</div><div class="stat-mini-val g" id="st-bull">0</div></div>
+      <div class="stat-mini"><div class="stat-mini-label">BEARISH</div><div class="stat-mini-val r" id="st-bear">0</div></div>
+      <div class="stat-mini"><div class="stat-mini-label">HIGH IMPACT</div><div class="stat-mini-val y" id="st-impact">0</div></div>
+    </div>
+
+    <!-- GRID -->
+    <div class="news-grid">
+      <div>
+        <!-- FEATURED -->
+        <div class="featured-card" onclick="openNews(0)">
+          <div class="featured-label">🌟 TOP STORY</div>
+          <div class="featured-headline" id="featured-headline">RBI Holds Repo Rate at 6.5% — Markets Rally on Stable Policy Stance</div>
+          <div class="featured-summary" id="featured-summary">The Reserve Bank of India kept the benchmark repo rate unchanged at 6.5% for the sixth consecutive time, signalling a cautious but stable monetary policy amid global uncertainty. Analysts expect this to boost banking and NBFC stocks.</div>
+        </div>
+        <!-- NEWS FEED -->
+        <div class="news-feed" id="news-feed"></div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="right-col">
+        <!-- SENTIMENT METER -->
+        <div class="panel-box">
+          <div class="panel-title" style="color:var(--green)">📊 MARKET SENTIMENT</div>
+          <div class="sentiment-meter">
+            <div class="meter-label">
+              <span class="g">🟢 Bullish <span id="bull-pct">62</span>%</span>
+              <span class="r">🔴 Bearish <span id="bear-pct">38</span>%</span>
+            </div>
+            <div class="meter-bar">
+              <div class="meter-bull" id="bull-bar" style="width:62%"></div>
+              <div class="meter-bear" id="bear-bar" style="width:38%"></div>
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--muted);text-align:center;margin-top:8px">Based on today's <span id="news-count">12</span> news articles</div>
+        </div>
+
+        <!-- TRENDING STOCKS -->
+        <div class="panel-box">
+          <div class="panel-title" style="color:var(--cyan)">🔥 TRENDING IN NEWS</div>
+          <div id="trending-list"></div>
+        </div>
+
+        <!-- SECTOR IMPACT -->
+        <div class="panel-box">
+          <div class="panel-title" style="color:var(--yellow)">🏭 SECTOR IMPACT</div>
+          <div id="sector-impact"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NEWS DETAIL MODAL -->
+<div class="overlay" id="overlay">
+  <div class="news-modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modal-meta" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;"></div>
+    <div class="modal-headline" id="modal-headline"></div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const newsData = [
+  {
+    id:0, sentiment:'bull', category:'RBI', impact:'high',
+    headline:'RBI Holds Repo Rate at 6.5% — Markets Rally on Stable Policy Stance',
+    summary:'The Reserve Bank of India kept the benchmark repo rate unchanged at 6.5% for the sixth consecutive time.',
+    source:'Economic Times', time:'2 hrs ago', tags:['HDFC','ICICI','Banking'],
+    body:`<p>The Reserve Bank of India (RBI) Monetary Policy Committee (MPC) voted 5-1 to keep the repo rate unchanged at 6.5% at its latest meeting. This marks the sixth consecutive hold, signalling that the central bank is in a wait-and-watch mode before considering any rate cuts.</p>
+    <p>RBI Governor stated that domestic inflation remains within the target band of 4±2%, and GDP growth is tracking well above 7% for FY2025-26. The policy stance was shifted to "neutral", which markets interpreted as a sign that rate cuts could come in the next 2-3 quarters.</p>
+    <p>Banking stocks surged on the news — HDFC Bank rose 2.1%, ICICI Bank gained 1.8%, and Axis Bank jumped 2.4%. The Nifty Bank Index outperformed the broader market, rising 1.2% intraday.</p>
+    <p><strong>Impact:</strong> Positive for banking & NBFC sector. Real estate and housing finance companies also benefit from a stable interest rate environment.</p>`
+  },
+  {
+    id:1, sentiment:'bull', category:'NIFTY', impact:'high',
+    headline:'NIFTY 50 Crosses 22,000 Mark — Analysts Target 23,500 by Year End',
+    summary:'Strong FII inflows and robust corporate earnings push Nifty above 22,000 for the first time this quarter.',
+    source:'Moneycontrol', time:'3 hrs ago', tags:['NIFTY','FII','Markets'],
+    body:`<p>India's benchmark index NIFTY 50 crossed the psychological 22,000 level today, driven by strong FII inflows of over ₹4,200 crore in a single session. This is the highest level in the past 3 months.</p>
+    <p>Foreign Institutional Investors (FIIs) have been net buyers for the past 12 consecutive sessions, bringing total inflows to over ₹28,000 crore this month. Domestic Institutional Investors (DIIs) also remained supportive with ₹1,800 crore in purchases today.</p>
+    <p>Top analyst firms including Motilal Oswal and ICICI Securities have raised their Nifty targets to 23,500 by December 2026, citing strong earnings growth and improving macroeconomic conditions.</p>`
+  },
+  {
+    id:2, sentiment:'bear', category:'Global', impact:'high',
+    headline:'US Fed Signals Higher-For-Longer Rates — Emerging Markets Under Pressure',
+    summary:'Federal Reserve minutes show policymakers are not in a hurry to cut rates, triggering selloff in EM currencies and stocks.',
+    source:'Reuters', time:'5 hrs ago', tags:['Fed','USD','Global'],
+    body:`<p>The latest Federal Open Market Committee (FOMC) minutes revealed that most members believe current interest rates should remain elevated until inflation sustainably returns to the 2% target. This "higher for longer" stance has sent shockwaves through global markets.</p>
+    <p>The US Dollar Index (DXY) strengthened to 104.8, putting pressure on emerging market currencies including the Indian Rupee, which weakened to ₹83.6 per dollar. A stronger dollar typically leads to FII outflows from emerging markets like India.</p>
+    <p>IT stocks, which earn in USD, could benefit from currency tailwinds. Exporters like TCS, Infosys, and Wipro may see higher rupee revenues.</p>`
+  },
+  {
+    id:3, sentiment:'bull', category:'Corporate', impact:'med',
+    headline:'Reliance Industries Q4 Results Beat Estimates — Net Profit Up 11%',
+    summary:'Reliance Industries reports strong Q4FY26 earnings with net profit of ₹21,243 crore, beating analyst estimates of ₹19,800 crore.',
+    source:'Business Standard', time:'6 hrs ago', tags:['RELIANCE','Earnings','Q4'],
+    body:`<p>Reliance Industries Limited (RIL) reported a stellar set of numbers for Q4FY26. Net profit rose 11.2% year-on-year to ₹21,243 crore, well ahead of the analyst consensus estimate of ₹19,800 crore. Revenue from operations grew 8.4% to ₹2,57,891 crore.</p>
+    <p>The Jio Platforms segment showed the strongest growth, with 5G subscriber additions of 14 million during the quarter. Average Revenue Per User (ARPU) improved to ₹195.8 from ₹181.7 a year ago. Retail segment also performed strongly, with footfalls across Reliance Retail stores crossing 1.2 billion.</p>
+    <p>The stock rallied 3.2% on the results, breaking above the ₹2,900 resistance level. Analysts have upgraded their price targets with Kotak Securities setting a target of ₹3,200.</p>`
+  },
+  {
+    id:4, sentiment:'neutral', category:'NIFTY', impact:'med',
+    headline:'SEBI Proposes New Framework for Algorithmic Trading by Retail Investors',
+    summary:'Market regulator SEBI has released a consultation paper on allowing retail investors to use algorithmic trading strategies via broker APIs.',
+    source:'SEBI Press Release', time:'8 hrs ago', tags:['SEBI','Algo','Regulation'],
+    body:`<p>The Securities and Exchange Board of India (SEBI) has released a consultation paper proposing a new regulatory framework that would allow retail investors to use algorithmic trading systems through their broker's API. Currently, algo trading is largely limited to institutional participants.</p>
+    <p>The proposed framework includes mandatory registration of all algorithms, real-time risk controls, and a maximum order frequency cap. Brokers would need SEBI approval before offering algo platforms to retail clients.</p>
+    <p>Industry participants have generally welcomed the move, saying it will democratise sophisticated trading strategies. However, concerns have been raised about market manipulation risks if retail algo trading is not properly monitored.</p>`
+  },
+  {
+    id:5, sentiment:'bear', category:'Global', impact:'high',
+    headline:'Crude Oil Prices Surge 4% on Middle East Tensions — Inflation Risk Returns',
+    summary:'Brent crude oil jumps to $92 per barrel as geopolitical tensions escalate, raising fears of imported inflation in India.',
+    source:'Bloomberg', time:'10 hrs ago', tags:['Oil','Inflation','Global'],
+    body:`<p>Brent crude oil prices surged 4.2% to $92.3 per barrel as tensions in the Middle East escalated significantly, raising concerns about supply disruptions. This is the highest level since October 2025.</p>
+    <p>For India, which imports over 85% of its crude oil requirements, a $10 rise in oil prices adds approximately 0.4% to the headline Consumer Price Index (CPI). This could complicate the RBI's path towards rate cuts.</p>
+    <p>Oil marketing companies like BPCL and HPCL fell 3-4% on fears of under-recoveries returning. Aviation stocks like IndiGo also declined sharply. However, upstream producers like ONGC and Oil India gained.</p>`
+  },
+  {
+    id:6, sentiment:'bull', category:'Corporate', impact:'med',
+    headline:'TCS Bags $1.5 Billion Deal with European Banking Giant',
+    summary:'Tata Consultancy Services announces a landmark 7-year, $1.5 billion contract with a leading European bank for digital transformation services.',
+    source:'Mint', time:'12 hrs ago', tags:['TCS','IT','Deal'],
+    body:`<p>Tata Consultancy Services (TCS) has bagged its largest deal of FY2026 — a $1.5 billion, 7-year contract with a top-5 European banking institution for a comprehensive digital transformation program covering cloud migration, AI integration, and core banking modernisation.</p>
+    <p>This deal significantly boosts TCS's order book, which now stands at a record $42 billion (trailing twelve months). The company's deal pipeline remains robust, with management citing strong demand for AI-led transformation projects.</p>
+    <p>TCS stock gained 2.8% on the announcement. Analysts say this reinforces TCS's competitive positioning against global peers like Accenture and Capgemini.</p>`
+  },
+  {
+    id:7, sentiment:'neutral', category:'RBI', impact:'low',
+    headline:'India\'s CPI Inflation Eases to 4.2% in April — Below RBI Target',
+    summary:'Retail inflation cools to 4.2% in April 2026, the lowest in 18 months, driven by falling food and vegetable prices.',
+    source:'Ministry of Statistics', time:'14 hrs ago', tags:['Inflation','CPI','Economy'],
+    body:`<p>India's Consumer Price Index (CPI) based inflation eased to 4.2% in April 2026 from 4.6% in March, coming in below the RBI's medium-term target of 4% and significantly lower than the upper tolerance band of 6%.</p>
+    <p>Food inflation, which has the highest weight in CPI at 39%, cooled sharply to 3.8% from 5.1% in March, thanks to a good rabi crop harvest and government interventions in key vegetable markets. Core inflation (ex-food and fuel) remained steady at 3.4%.</p>
+    <p>This data increases the probability of an RBI rate cut in the August MPC meeting. Economists now assign a 60% probability to a 25 basis point cut.</p>`
+  },
+];
+
+const trending = [
+  {ticker:'RELIANCE', count:'2.4k mentions', chg:'+3.2%', cls:'g'},
+  {ticker:'TCS',      count:'1.8k mentions', chg:'+2.8%', cls:'g'},
+  {ticker:'HDFC',     count:'1.2k mentions', chg:'+2.1%', cls:'g'},
+  {ticker:'BPCL',     count:'980 mentions',  chg:'-3.4%', cls:'r'},
+  {ticker:'ONGC',     count:'750 mentions',  chg:'+1.9%', cls:'g'},
+];
+
+const sectorImpact = [
+  {sector:'Banking',    impact:'HIGH',   cls:'badge-bull', dir:'▲'},
+  {sector:'IT',         impact:'HIGH',   cls:'badge-bull', dir:'▲'},
+  {sector:'Oil & Gas',  impact:'HIGH',   cls:'badge-bear', dir:'▼'},
+  {sector:'Auto',       impact:'MEDIUM', cls:'badge-neutral', dir:'→'},
+  {sector:'Pharma',     impact:'LOW',    cls:'badge-neutral', dir:'→'},
+];
+
+let currentFilter = 'all';
+let currentSearch = '';
+
+function updateStats(){
+  const bull   = newsData.filter(n=>n.sentiment==='bull').length;
+  const bear   = newsData.filter(n=>n.sentiment==='bear').length;
+  const impact = newsData.filter(n=>n.impact==='high').length;
+  document.getElementById('st-total').textContent  = newsData.length;
+  document.getElementById('st-bull').textContent   = bull;
+  document.getElementById('st-bear').textContent   = bear;
+  document.getElementById('st-impact').textContent = impact;
+  document.getElementById('news-count').textContent= newsData.length;
+  const bullPct = Math.round(bull/newsData.length*100);
+  document.getElementById('bull-pct').textContent  = bullPct;
+  document.getElementById('bear-pct').textContent  = 100-bullPct;
+  document.getElementById('bull-bar').style.width  = bullPct+'%';
+  document.getElementById('bear-bar').style.width  = (100-bullPct)+'%';
+}
+
+function getFiltered(){
+  return newsData.filter(n=>{
+    const matchSentiment = currentFilter==='all'||n.sentiment===currentFilter||n.category===currentFilter;
+    const matchSearch    = !currentSearch || n.headline.toLowerCase().includes(currentSearch) || n.tags.some(t=>t.toLowerCase().includes(currentSearch));
+    return matchSentiment && matchSearch;
+  });
+}
+
+function renderNews(){
+  const feed = document.getElementById('news-feed');
+  const data = getFiltered().filter(n=>n.id!==0); // exclude featured
+  if(!data.length){ feed.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted)">No news found for this filter.</div>'; return; }
+  feed.innerHTML = data.map(n=>{
+    const badgeCls = n.sentiment==='bull'?'badge-bull':n.sentiment==='bear'?'badge-bear':'badge-neutral';
+    const label    = n.sentiment==='bull'?'🟢 BULLISH':n.sentiment==='bear'?'🔴 BEARISH':'🔵 NEUTRAL';
+    const impDot   = n.impact==='high'?'imp-high':n.impact==='med'?'imp-med':'imp-low';
+    const impLabel = n.impact==='high'?'HIGH IMPACT':n.impact==='med'?'MEDIUM IMPACT':'LOW IMPACT';
+    return`
+    <div class="news-card ${n.sentiment}" onclick="openNews(${n.id})">
+      <div class="news-meta">
+        <span class="sentiment-badge ${badgeCls}">${label}</span>
+        <span class="news-category">${n.category}</span>
+        <span class="news-source">${n.source}</span>
+        <span class="news-time">${n.time}</span>
+      </div>
+      <div class="news-headline">${n.headline}</div>
+      <div class="news-summary">${n.summary}</div>
+      <div class="news-footer">
+        ${n.tags.map(t=>`<span class="news-tag">#${t}</span>`).join('')}
+        <span class="news-impact"><span class="impact-dot ${impDot}"></span>${impLabel}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterBy(type, el){
+  document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  currentFilter = type;
+  renderNews();
+}
+
+function filterNews(){
+  currentSearch = document.getElementById('searchInput').value.toLowerCase();
+  renderNews();
+}
+
+function renderTrending(){
+  document.getElementById('trending-list').innerHTML = trending.map((t,i)=>`
+    <div class="trend-item">
+      <div class="trend-rank">${i+1}</div>
+      <div class="trend-info">
+        <div class="trend-ticker">${t.ticker}</div>
+        <div class="trend-count">${t.count}</div>
+      </div>
+      <div class="trend-chg ${t.cls}">${t.chg}</div>
+    </div>`).join('');
+}
+
+function renderSectorImpact(){
+  document.getElementById('sector-impact').innerHTML = sectorImpact.map(s=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(13,45,58,.5)">
+      <div style="font-weight:600;font-size:13px">${s.dir} ${s.sector}</div>
+      <span class="sentiment-badge ${s.cls}" style="font-size:10px">${s.impact}</span>
+    </div>`).join('');
+}
+
+function openNews(id){
+  const n = newsData.find(x=>x.id===id);
+  if(!n) return;
+  const badgeCls = n.sentiment==='bull'?'badge-bull':n.sentiment==='bear'?'badge-bear':'badge-neutral';
+  const label    = n.sentiment==='bull'?'🟢 BULLISH':n.sentiment==='bear'?'🔴 BEARISH':'🔵 NEUTRAL';
+  document.getElementById('modal-meta').innerHTML=`
+    <span class="sentiment-badge ${badgeCls}">${label}</span>
+    <span class="news-category">${n.category}</span>
+    <span class="news-source">${n.source}</span>
+    <span class="news-time">${n.time}</span>`;
+  document.getElementById('modal-headline').textContent = n.headline;
+  document.getElementById('modal-body').innerHTML = n.body;
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closeModal(){ document.getElementById('overlay').classList.remove('open'); }
+document.getElementById('overlay').addEventListener('click',function(e){ if(e.target===this)closeModal(); });
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+window.onload=()=>{
+  updateStats();
+  renderNews();
+  renderTrending();
+  renderSectorImpact();
+};
+</script>
+</body>
+</html>

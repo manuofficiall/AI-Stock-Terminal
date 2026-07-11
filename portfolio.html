@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockIQ — My Portfolio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --bg:     #030a0e;
+            --bg2:    #060f14;
+            --bg3:    #0a1a22;
+            --border: #0d2d3a;
+            --green:  #00ff88;
+            --red:    #ff4560;
+            --blue:   #00c8ff;
+            --yellow: #ffd700;
+            --text:   #ddeef5;
+            --muted:  #4a7a8a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── Background grid ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0,255,136,.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,255,136,.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── TOP NAV ── */
+        .topnav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 32px;
+            background: rgba(6,15,20,.9);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            color: var(--green);
+            letter-spacing: 3px;
+        }
+        .logo span { color: var(--blue); }
+
+        .nav-links { display: flex; gap: 8px; }
+        .nav-links a {
+            color: var(--muted);
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            transition: all .2s;
+        }
+        .nav-links a:hover { background: var(--border); color: var(--text); }
+        .nav-links a.active { background: rgba(0,255,136,.1); color: var(--green); border: 1px solid rgba(0,255,136,.3); }
+
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .avatar {
+            width: 34px; height: 34px;
+            background: linear-gradient(135deg, var(--green), var(--blue));
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            color: #000;
+            font-weight: 900;
+        }
+
+        /* ── MAIN LAYOUT ── */
+        .page { padding: 32px; position: relative; z-index: 1; }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .page-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 28px;
+            color: var(--green);
+        }
+        .page-title span { color: var(--muted); font-size: 14px; font-family: 'Rajdhani', sans-serif; margin-left: 12px; }
+
+        .add-btn {
+            background: linear-gradient(135deg, var(--green), #00cc6a);
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all .2s;
+            box-shadow: 0 0 20px rgba(0,255,136,.3);
+        }
+        .add-btn:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(0,255,136,.5); }
+
+        /* ── SUMMARY CARDS ── */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px 24px;
+            position: relative;
+            overflow: hidden;
+            transition: border-color .2s;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+        }
+        .stat-card.invested::before { background: var(--blue); }
+        .stat-card.current::before  { background: var(--green); }
+        .stat-card.pnl::before      { background: var(--yellow); }
+        .stat-card.returns::before  { background: var(--green); }
+
+        .stat-card:hover { border-color: rgba(0,255,136,.3); }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+        .stat-val {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+        }
+        .stat-val.green { color: var(--green); }
+        .stat-val.blue  { color: var(--blue); }
+        .stat-val.yellow{ color: var(--yellow); }
+        .stat-val.red   { color: var(--red); }
+
+        .stat-sub {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 6px;
+        }
+
+        /* ── MAIN BODY ── */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 24px;
+            align-items: start;
+        }
+
+        /* ── TABLE SECTION ── */
+        .section-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            color: var(--green);
+            letter-spacing: 2px;
+        }
+
+        .filter-tabs { display: flex; gap: 6px; }
+        .ftab {
+            padding: 5px 12px;
+            border-radius: 6px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+        }
+        .ftab.active, .ftab:hover {
+            background: rgba(0,255,136,.1);
+            border-color: rgba(0,255,136,.4);
+            color: var(--green);
+        }
+
+        /* ── HOLDINGS TABLE ── */
+        .holdings-table { width: 100%; border-collapse: collapse; }
+        .holdings-table th {
+            padding: 12px 20px;
+            text-align: left;
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 1.5px;
+            background: var(--bg3);
+            border-bottom: 1px solid var(--border);
+        }
+        .holdings-table td {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(13,45,58,.5);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .holdings-table tr:hover td { background: rgba(0,255,136,.03); }
+
+        .stock-name-cell { display: flex; align-items: center; gap: 12px; }
+        .stock-icon {
+            width: 36px; height: 36px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px;
+            font-weight: 900;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .up   { color: var(--green); }
+        .down { color: var(--red); }
+
+        .badge {
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .badge-bull { background: rgba(0,255,136,.1); color: var(--green); border: 1px solid rgba(0,255,136,.3); }
+        .badge-bear { background: rgba(255,69,96,.1);  color: var(--red);   border: 1px solid rgba(255,69,96,.3); }
+
+        .action-btn {
+            padding: 6px 14px;
+            border-radius: 6px;
+            border: none;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all .15s;
+        }
+        .btn-buy  { background: rgba(0,255,136,.15); color: var(--green); border: 1px solid rgba(0,255,136,.3); margin-right: 4px; }
+        .btn-sell { background: rgba(255,69,96,.15);  color: var(--red);   border: 1px solid rgba(255,69,96,.3); }
+        .btn-buy:hover  { background: rgba(0,255,136,.3); }
+        .btn-sell:hover { background: rgba(255,69,96,.3); }
+
+        /* ── RIGHT PANEL ── */
+        .right-panel { display: flex; flex-direction: column; gap: 20px; }
+
+        .pie-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+        }
+
+        .pie-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 13px;
+            color: var(--green);
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+        }
+
+        .pie-wrap {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 20px;
+        }
+
+        .pie-center {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        .pie-center-val {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 16px;
+            color: var(--green);
+        }
+        .pie-center-label {
+            font-size: 10px;
+            color: var(--muted);
+            letter-spacing: 1px;
+        }
+
+        .legend { display: flex; flex-direction: column; gap: 8px; }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+        .legend-dot {
+            width: 10px; height: 10px;
+            border-radius: 3px;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+        .legend-name { display: flex; align-items: center; color: var(--text); flex: 1; }
+        .legend-pct  { color: var(--muted); font-weight: 700; }
+
+        /* ── RECENT ACTIVITY ── */
+        .activity-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+        }
+
+        .activity-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 13px;
+            color: var(--blue);
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(13,45,58,.5);
+        }
+        .activity-item:last-child { border-bottom: none; }
+
+        .activity-icon {
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
+        }
+        .act-buy  { background: rgba(0,255,136,.1); }
+        .act-sell { background: rgba(255,69,96,.1); }
+
+        .activity-info { flex: 1; }
+        .activity-info strong { font-size: 13px; display: block; }
+        .activity-info small  { font-size: 11px; color: var(--muted); }
+
+        .activity-amt { font-size: 13px; font-weight: 700; text-align: right; }
+        .activity-amt small { font-size: 10px; color: var(--muted); display: block; }
+
+        /* ── BUY/SELL MODAL ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.8);
+            z-index: 1000;
+            backdrop-filter: blur(6px);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+
+        .modal {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            width: 420px;
+            padding: 32px;
+            position: relative;
+            animation: modalIn .25s ease;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(.9) translateY(20px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px; right: 20px;
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 20px;
+            cursor: pointer;
+            transition: color .2s;
+        }
+        .modal-close:hover { color: var(--text); }
+
+        .modal-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 16px;
+            margin-bottom: 6px;
+        }
+        .modal-subtitle { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+
+        .modal-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+        .mtab {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: transparent;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .2s;
+        }
+        .mtab.buy-tab  { color: var(--green); }
+        .mtab.sell-tab { color: var(--red); }
+        .mtab.buy-tab.active  { background: rgba(0,255,136,.15); border-color: var(--green); }
+        .mtab.sell-tab.active { background: rgba(255,69,96,.15);  border-color: var(--red); }
+
+        .form-group { margin-bottom: 16px; }
+        .form-label { font-size: 11px; color: var(--muted); letter-spacing: 1.5px; margin-bottom: 6px; display: block; }
+        .form-input {
+            width: 100%;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 14px;
+            color: var(--text);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            outline: none;
+            transition: border-color .2s;
+        }
+        .form-input:focus { border-color: var(--green); }
+
+        .order-summary {
+            background: var(--bg3);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 20px;
+        }
+        .order-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            padding: 4px 0;
+        }
+        .order-row span:first-child { color: var(--muted); }
+        .order-row.total {
+            border-top: 1px solid var(--border);
+            margin-top: 6px;
+            padding-top: 8px;
+            font-weight: 700;
+        }
+
+        .confirm-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 10px;
+            border: none;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all .2s;
+        }
+        .confirm-buy  { background: linear-gradient(135deg, var(--green), #00cc6a); color: #000; }
+        .confirm-sell { background: linear-gradient(135deg, var(--red), #cc2040);   color: #fff; }
+        .confirm-btn:hover { transform: translateY(-2px); }
+
+        /* ── SUCCESS TOAST ── */
+        .toast {
+            position: fixed;
+            bottom: 30px; right: 30px;
+            background: var(--bg2);
+            border: 1px solid var(--green);
+            color: var(--green);
+            padding: 14px 24px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            z-index: 9999;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all .3s;
+            pointer-events: none;
+        }
+        .toast.show { opacity: 1; transform: translateY(0); }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 1000px) {
+            .main-grid { grid-template-columns: 1fr; }
+            .summary-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .page { padding: 16px; }
+            .summary-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+    <div class="logo">STOCK<span>IQ</span></div>
+    <div class="nav-links">
+        <a href="/dashboard">DASHBOARD</a>
+        <a href="/dashboard">MARKETS</a>
+        <a href="/predict">AI PREDICT</a>
+        <a href="/portfolio" class="active">PORTFOLIO</a>
+    </div>
+    <div class="user-badge">
+        <div class="avatar">MJ</div>
+        <span>Manoj JN</span>
+    </div>
+</nav>
+
+<!-- MAIN PAGE -->
+<div class="page">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">MY PORTFOLIO <span>Virtual Paper Trading</span></h1>
+        </div>
+        <button class="add-btn" onclick="openBuyModal('NEW STOCK')">+ ADD STOCK</button>
+    </div>
+
+    <!-- SUMMARY CARDS -->
+    <div class="summary-grid">
+        <div class="stat-card invested">
+            <div class="stat-label">TOTAL INVESTED</div>
+            <div class="stat-val blue" id="total-invested">₹5,84,200</div>
+            <div class="stat-sub">Across 5 holdings</div>
+        </div>
+        <div class="stat-card current">
+            <div class="stat-label">CURRENT VALUE</div>
+            <div class="stat-val green" id="total-current">₹6,21,450</div>
+            <div class="stat-sub">Last updated: just now</div>
+        </div>
+        <div class="stat-card pnl">
+            <div class="stat-label">TOTAL P&amp;L</div>
+            <div class="stat-val green" id="total-pnl">+₹37,250</div>
+            <div class="stat-sub" id="pnl-sub">Unrealised profit</div>
+        </div>
+        <div class="stat-card returns">
+            <div class="stat-label">TOTAL RETURNS</div>
+            <div class="stat-val green" id="total-returns">+6.38%</div>
+            <div class="stat-sub">Since inception</div>
+        </div>
+    </div>
+
+    <!-- MAIN GRID: TABLE + SIDEBAR -->
+    <div class="main-grid">
+
+        <!-- HOLDINGS TABLE -->
+        <div class="section-card">
+            <div class="section-header">
+                <div class="section-title">HOLDINGS</div>
+                <div class="filter-tabs">
+                    <button class="ftab active" onclick="filterHoldings('all',this)">ALL</button>
+                    <button class="ftab" onclick="filterHoldings('profit',this)">PROFIT</button>
+                    <button class="ftab" onclick="filterHoldings('loss',this)">LOSS</button>
+                </div>
+            </div>
+            <table class="holdings-table">
+                <thead>
+                    <tr>
+                        <th>STOCK</th>
+                        <th>QTY</th>
+                        <th>AVG BUY</th>
+                        <th>CMP</th>
+                        <th>INVESTED</th>
+                        <th>P&amp;L</th>
+                        <th>CHG %</th>
+                        <th>ACTION</th>
+                    </tr>
+                </thead>
+                <tbody id="holdings-body">
+                    <!-- Rows injected by JS -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- RIGHT PANEL -->
+        <div class="right-panel">
+
+            <!-- PIE CHART -->
+            <div class="pie-card">
+                <div class="pie-title">ALLOCATION</div>
+                <div class="pie-wrap">
+                    <canvas id="pieChart"></canvas>
+                    <div class="pie-center">
+                        <div class="pie-center-val">5</div>
+                        <div class="pie-center-label">STOCKS</div>
+                    </div>
+                </div>
+                <div class="legend" id="legend"></div>
+            </div>
+
+            <!-- RECENT ACTIVITY -->
+            <div class="activity-card">
+                <div class="activity-title">RECENT TRADES</div>
+                <div id="activity-list"></div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- BUY / SELL MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal()">✕</button>
+        <div class="modal-title" id="modal-stock-name">RELIANCE</div>
+        <div class="modal-subtitle" id="modal-stock-price">CMP: ₹2,714.50</div>
+
+        <div class="modal-tabs">
+            <button class="mtab buy-tab active" id="buyTab"  onclick="switchTab('buy')">▲ BUY</button>
+            <button class="mtab sell-tab"       id="sellTab" onclick="switchTab('sell')">▼ SELL</button>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">QUANTITY</label>
+            <input class="form-input" type="number" id="qty-input" value="1" min="1"
+                   oninput="updateOrderSummary()">
+        </div>
+
+        <div class="order-summary">
+            <div class="order-row"><span>Price per share</span><span id="sum-price">₹2,714.50</span></div>
+            <div class="order-row"><span>Quantity</span><span id="sum-qty">1</span></div>
+            <div class="order-row"><span>Brokerage (0.05%)</span><span id="sum-broker">₹1.36</span></div>
+            <div class="order-row total"><span>TOTAL</span><span id="sum-total">₹2,715.86</span></div>
+        </div>
+
+        <button class="confirm-btn confirm-buy" id="confirm-btn" onclick="confirmOrder()">
+            CONFIRM BUY ORDER
+        </button>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ─────────────────────────────────────────
+   PORTFOLIO DATA (Paper Trading – Fake Data)
+   In a real app this comes from Flask /api/portfolio_data
+────────────────────────────────────────── */
+const holdings = [
+    { ticker:'RELIANCE', name:'Reliance Industries', sector:'Energy',    qty:10, buy:2650, cmp:2714, color:'#00ff88' },
+    { ticker:'TCS',      name:'Tata Consultancy',   sector:'IT',        qty:5,  buy:3580, cmp:3651, color:'#00c8ff' },
+    { ticker:'INFOSYS',  name:'Infosys Ltd',         sector:'IT',        qty:8,  buy:1520, cmp:1578, color:'#ffd700' },
+    { ticker:'HDFC',     name:'HDFC Bank',           sector:'Finance',   qty:6,  buy:1700, cmp:1643, color:'#ff6b35' },
+    { ticker:'WIPRO',    name:'Wipro Ltd',           sector:'IT',        qty:20, buy:470,  cmp:491,  color:'#c678dd' },
+];
+
+const STOCK_ICONS = {
+    RELIANCE:'RL', TCS:'TC', INFOSYS:'IN', HDFC:'HD', WIPRO:'WP'
+};
+
+const ICON_COLORS = {
+    RELIANCE:'rgba(0,255,136,.15)',
+    TCS:'rgba(0,200,255,.15)',
+    INFOSYS:'rgba(255,215,0,.15)',
+    HDFC:'rgba(255,107,53,.15)',
+    WIPRO:'rgba(198,120,221,.15)'
+};
+
+let currentStock = null;
+let currentTab   = 'buy';
+let activities   = [
+    { type:'buy',  ticker:'RELIANCE', qty:5,  price:2620, date:'10 May' },
+    { type:'buy',  ticker:'TCS',      qty:3,  price:3540, date:'09 May' },
+    { type:'sell', ticker:'INFOSYS',  qty:2,  price:1590, date:'08 May' },
+    { type:'buy',  ticker:'WIPRO',    qty:10, price:465,  date:'07 May' },
+    { type:'buy',  ticker:'HDFC',     qty:4,  price:1720, date:'06 May' },
+];
+
+/* ─── Render Holdings Table ─── */
+function renderHoldings(filter = 'all') {
+    const tbody = document.getElementById('holdings-body');
+    const filtered = filter === 'all' ? holdings
+        : filter === 'profit' ? holdings.filter(h => h.cmp >= h.buy)
+        : holdings.filter(h => h.cmp < h.buy);
+
+    tbody.innerHTML = filtered.map(h => {
+        const invested = h.qty * h.buy;
+        const current  = h.qty * h.cmp;
+        const pnl      = current - invested;
+        const pct      = ((h.cmp - h.buy) / h.buy * 100).toFixed(2);
+        const cls      = pnl >= 0 ? 'up' : 'down';
+        const badgeCls = pnl >= 0 ? 'badge-bull' : 'badge-bear';
+        const signal   = pnl >= 0 ? 'BULL' : 'BEAR';
+
+        return `
+        <tr>
+            <td>
+                <div class="stock-name-cell">
+                    <div class="stock-icon" style="background:${ICON_COLORS[h.ticker] || 'rgba(0,255,136,.1)'}; color:${h.color}">
+                        ${STOCK_ICONS[h.ticker] || h.ticker.slice(0,2)}
+                    </div>
+                    <div>
+                        <strong>${h.ticker}</strong><br>
+                        <small style="color:var(--muted);font-size:11px">${h.name}</small>
+                    </div>
+                </div>
+            </td>
+            <td>${h.qty}</td>
+            <td>₹${h.buy.toLocaleString()}</td>
+            <td>₹${h.cmp.toLocaleString()}</td>
+            <td style="color:var(--muted)">₹${invested.toLocaleString()}</td>
+            <td class="${cls}">${pnl >= 0 ? '+' : ''}₹${Math.abs(pnl).toLocaleString()}</td>
+            <td>
+                <span class="${cls}">${pct >= 0 ? '+' : ''}${pct}%</span>
+                <span class="badge ${badgeCls}" style="margin-left:6px">${signal}</span>
+            </td>
+            <td>
+                <button class="action-btn btn-buy"  onclick="openBuyModal('${h.ticker}')">BUY</button>
+                <button class="action-btn btn-sell" onclick="openSellModal('${h.ticker}')">SELL</button>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+/* ─── Filter ─── */
+function filterHoldings(type, el) {
+    document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    renderHoldings(type);
+}
+
+/* ─── Pie Chart ─── */
+function renderPie() {
+    const data    = holdings.map(h => h.qty * h.buy);
+    const labels  = holdings.map(h => h.ticker);
+    const colors  = holdings.map(h => h.color);
+    const total   = data.reduce((a,b) => a+b, 0);
+
+    new Chart(document.getElementById('pieChart'), {
+        type: 'doughnut',
+        data: {
+            labels,
+            datasets: [{
+                data,
+                backgroundColor: colors.map(c => c + '99'),
+                borderColor:     colors,
+                borderWidth: 2,
+                hoverOffset: 8,
+            }]
+        },
+        options: {
+            cutout: '72%',
+            plugins: { legend: { display: false }, tooltip: {
+                callbacks: {
+                    label: ctx => ` ${ctx.label}: ₹${ctx.parsed.toLocaleString()} (${(ctx.parsed/total*100).toFixed(1)}%)`
+                }
+            }},
+            animation: { duration: 1000, easing: 'easeInOutQuart' }
+        }
+    });
+
+    // Legend
+    const legend = document.getElementById('legend');
+    legend.innerHTML = holdings.map((h, i) => {
+        const pct = (data[i] / total * 100).toFixed(1);
+        return `
+        <div class="legend-item">
+            <div class="legend-name">
+                <div class="legend-dot" style="background:${h.color}"></div>
+                ${h.ticker}
+            </div>
+            <div class="legend-pct">${pct}%</div>
+        </div>`;
+    }).join('');
+}
+
+/* ─── Recent Activity ─── */
+function renderActivity() {
+    const el = document.getElementById('activity-list');
+    el.innerHTML = activities.map(a => `
+    <div class="activity-item">
+        <div class="activity-icon ${a.type === 'buy' ? 'act-buy' : 'act-sell'}">
+            ${a.type === 'buy' ? '▲' : '▼'}
+        </div>
+        <div class="activity-info">
+            <strong>${a.type.toUpperCase()} ${a.ticker}</strong>
+            <small>${a.qty} shares @ ₹${a.price.toLocaleString()} · ${a.date}</small>
+        </div>
+        <div class="activity-amt ${a.type === 'buy' ? 'down' : 'up'}">
+            ${a.type === 'buy' ? '-' : '+'}₹${(a.qty * a.price).toLocaleString()}
+            <small>${a.type === 'buy' ? 'BOUGHT' : 'SOLD'}</small>
+        </div>
+    </div>`).join('');
+}
+
+/* ─── Summary Totals ─── */
+function renderSummary() {
+    let invested = 0, current = 0;
+    holdings.forEach(h => {
+        invested += h.qty * h.buy;
+        current  += h.qty * h.cmp;
+    });
+    const pnl  = current - invested;
+    const pct  = (pnl / invested * 100).toFixed(2);
+    const cls  = pnl >= 0 ? 'green' : 'red';
+
+    document.getElementById('total-invested').textContent = '₹' + invested.toLocaleString();
+    document.getElementById('total-current').textContent  = '₹' + current.toLocaleString();
+    document.getElementById('total-pnl').textContent      = (pnl >= 0 ? '+' : '') + '₹' + Math.abs(pnl).toLocaleString();
+    document.getElementById('total-pnl').className        = `stat-val ${cls}`;
+    document.getElementById('total-returns').textContent  = (pct >= 0 ? '+' : '') + pct + '%';
+    document.getElementById('total-returns').className    = `stat-val ${cls}`;
+}
+
+/* ─── Modal ─── */
+function openBuyModal(ticker) {
+    currentStock = holdings.find(h => h.ticker === ticker) || { ticker, cmp: 1000 };
+    currentTab = 'buy';
+    document.getElementById('modal-stock-name').textContent  = ticker;
+    document.getElementById('modal-stock-price').textContent = `CMP: ₹${currentStock.cmp.toLocaleString()}`;
+    document.getElementById('qty-input').value = 1;
+    switchTab('buy');
+    document.getElementById('modalOverlay').classList.add('open');
+    updateOrderSummary();
+}
+
+function openSellModal(ticker) {
+    openBuyModal(ticker);
+    switchTab('sell');
+}
+
+function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function switchTab(type) {
+    currentTab = type;
+    document.getElementById('buyTab').classList.toggle('active', type === 'buy');
+    document.getElementById('sellTab').classList.toggle('active', type === 'sell');
+    document.getElementById('confirm-btn').textContent = `CONFIRM ${type.toUpperCase()} ORDER`;
+    document.getElementById('confirm-btn').className   = `confirm-btn confirm-${type}`;
+    updateOrderSummary();
+}
+
+function updateOrderSummary() {
+    if (!currentStock) return;
+    const qty      = parseInt(document.getElementById('qty-input').value) || 1;
+    const price    = currentStock.cmp;
+    const broker   = +(price * qty * 0.0005).toFixed(2);
+    const total    = +(price * qty + broker).toFixed(2);
+
+    document.getElementById('sum-price').textContent  = '₹' + price.toLocaleString();
+    document.getElementById('sum-qty').textContent    = qty;
+    document.getElementById('sum-broker').textContent = '₹' + broker.toFixed(2);
+    document.getElementById('sum-total').textContent  = '₹' + total.toLocaleString();
+}
+
+function confirmOrder() {
+    const ticker = currentStock.ticker;
+    const qty    = parseInt(document.getElementById('qty-input').value) || 1;
+    const price  = currentStock.cmp;
+
+    // Add to activity
+    activities.unshift({ type: currentTab, ticker, qty, price, date: 'Just now' });
+    if (activities.length > 6) activities.pop();
+
+    // Update holding qty
+    const h = holdings.find(x => x.ticker === ticker);
+    if (h) {
+        if (currentTab === 'buy') {
+            const totalQty  = h.qty + qty;
+            h.buy = Math.round((h.buy * h.qty + price * qty) / totalQty);
+            h.qty = totalQty;
+        } else {
+            h.qty = Math.max(0, h.qty - qty);
+        }
+    }
+
+    closeModal();
+    showToast(`✅ ${currentTab.toUpperCase()} order for ${qty} × ${ticker} placed!`);
+    renderHoldings();
+    renderActivity();
+    renderSummary();
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// Close modal on overlay click
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+
+/* ─── INIT ─── */
+window.onload = () => {
+    renderSummary();
+    renderHoldings();
+    renderPie();
+    renderActivity();
+};
+</script>
+</body>
+</html>
